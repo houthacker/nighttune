@@ -13,6 +13,9 @@ import {
   Grid,
   CssBaseline,
   createTheme,
+  Stepper,
+  Step,
+  StepLabel,
 } from "@mui/material";
 
 import AutotuneJobStatus from './components/AutotuneJobStatus';
@@ -21,6 +24,9 @@ import ProfileDetails from './components/ProfileDetails';
 
 import AppTheme from './components/shared-theme/AppTheme';
 import ColorModeIconDropdown from './components/shared-theme/ColorModeIconDropdown';
+import NightscoutIcon from "./components/NightscoutIcon";
+import Info from "./components/Info";
+import InfoMobile from "./components/InfoMobile";
 
 const theme = createTheme({
   palette: {
@@ -191,9 +197,136 @@ export default function App(props) {
           },
         }}
       >
+        <Grid
+          size={{ xs: 12, sm: 5, lg: 4 }}
+          sx={{
+            display: { xs: 'none', md: 'flex' },
+            flexDirection: 'column',
+            backgroundColor: 'background.paper',
+            borderRight: { sm: 'none', md: '1px solid' },
+            borderColor: { sm: 'none', md: 'divider' },
+            alignItems: 'start',
+            pt: 16,
+            px: 10,
+            gap: 4,
+          }}
+        >
+          <NightscoutIcon />
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              flexGrow: 1,
+              width: '100%',
+              maxWidth: 500,
+            }}
+          >
+            <Info steps={steps} activeStep={activeStep} />
+          </Box>
+        </Grid>
 
+        <Grid
+          size={{ sm: 12, md: 7, lg: 8 }}
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            maxWidth: '100%',
+            width: '100%',
+            backgroundColor: { xs: 'transparent', sm: 'background.default' },
+            alignItems: 'start',
+            pt: { xs: 0, sm: 16 },
+            px: { xs: 2, sm: 10 },
+            gap: { xs: 4, md: 8 },
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: { sm: 'space-between', md: 'flex-end' },
+              alignItems: 'center',
+              width: ' 100%',
+              maxWidth: { sm: '100%', md: 600 },
+            }}
+          >
+            <Box
+              sx={{
+                display: { xs: 'none', md: 'flex' },
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                alignItems: 'flex-end',
+                flexGrow: 1,
+              }}
+            >
+              <Stepper
+                id='desktop-stepper'
+                activeStep={activeStep}
+                sx={{ width: '100%', height: 40 }}
+              >
+                {steps.map((step) => (
+                  <Step
+                    sx={{ ':first-child': { pl: 0 }, ':last-child': { pr: 0} }}
+                    key={step.name}
+                  >
+                    <StepLabel>{step.display_name}</StepLabel>
+                  </Step>
+                ))}
+              </Stepper>
+            </Box>
+          </Box>
+          <Card sx={{ display: { xs: 'flex', md: 'none' }, width: '100%' }}>
+            <CardContent
+              sx={{
+                display: 'flex',
+                width: '100%',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div>
+                <Typography variant="subtitle2" gutterBottom>
+                  Step {activeStep + 1}/{steps.length}
+                </Typography>
+              </div>
+              <InfoMobile steps={steps} activeStep={activeStep} />
+            </CardContent>
+          </Card>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              flexGrow: 1,
+              width: '100%',
+              maxWidth: { sm: '100%', md: 600 },
+              maxHeight: '720px',
+              gap: { xs: 5, md: 'none' },
+            }}
+          >
+            <Stepper
+              id="mobile-stepper"
+              activeStep={activeStep}
+              alternativeLabel
+              sx={{ display: { sm: 'flex', md: 'none' } }}
+            >
+              {steps.map((step) => (
+                <Step
+                  sx={{
+                    ':first-of-type': { pl: 0 },
+                    ':last-of-type': { pr: 0 },
+                    '& .MuiStepConnector-root': { top: { xs: 6, sm: 12 } },
+                  }}
+                  key={step.name}
+                >
+                  <StepLabel
+                    sx={{ '.MuiStepLabel-labelContainer': { maxWidth: '70px' } }}
+                  >
+                    {step.display_name}
+                  </StepLabel>
+                </Step>
+              ))}
+            </Stepper>
+          </Box>
+        </Grid>
       </Grid>
-      <Footer />
     </AppTheme>
   );
 }
