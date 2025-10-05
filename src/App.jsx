@@ -12,7 +12,6 @@ import {
   CardActions,
   Grid,
   CssBaseline,
-  createTheme,
   Stepper,
   Step,
   StepLabel,
@@ -27,16 +26,6 @@ import ColorModeIconDropdown from './components/shared-theme/ColorModeIconDropdo
 import NightscoutIcon from "./components/NightscoutIcon";
 import Info from "./components/Info";
 import InfoMobile from "./components/InfoMobile";
-
-const theme = createTheme({
-  palette: {
-    primary: { main: "#1565c0" }, // blue darken-3
-    secondary: { main: "#009688" }, // teal
-  },
-  typography: {
-    fontFamily: "Roboto, Arial, sans-serif",
-  },
-});
 
 // The steps to successfully queue an autotune job
 const steps = [
