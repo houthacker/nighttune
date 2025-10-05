@@ -1,24 +1,21 @@
 // src/App.js
-import * as React from "react";
+import * as React from 'react';
+import { useSyncExternalStore } from 'react';
 import {
-  AppBar,
-  Toolbar,
   Typography,
   Button,
-  Container,
   Box,
   Card,
   CardContent,
-  CardActions,
   Grid,
   CssBaseline,
   Stepper,
   Step,
   StepLabel,
-} from "@mui/material";
+} from '@mui/material';
 
 import AutotuneJobStatus from './components/AutotuneJobStatus';
-import NightscoutInstance from './components/NightscoutInstance';
+import { NightscoutInstance } from './components/NightscoutInstance';
 import ProfileDetails from './components/ProfileDetails';
 
 import AppTheme from './components/shared-theme/AppTheme';
@@ -26,6 +23,11 @@ import ColorModeIconDropdown from './components/shared-theme/ColorModeIconDropdo
 import NightscoutIcon from "./components/NightscoutIcon";
 import Info from "./components/Info";
 import InfoMobile from "./components/InfoMobile";
+
+import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
+import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
+
+import nsLocalStore from './utils/localStore';
 
 // The steps to successfully queue an autotune job
 const steps = [
@@ -36,129 +38,25 @@ const steps = [
 
 /**
  * Gets the UI element for the given step name.
- * @param {string} step The name of the step to get the content of.
+ * @param {number} step The index of the step to get the content of.
+ * @param {Snapshot} snapshot The current state of the app.
  * @throws Error if the step is unknown.
  */
-function getStepContent(step) {
+function getStepContent(step, snapshot) {
   switch (step) {
-    case steps[0].name:
-      return <AutotuneJobStatus />;
-    case steps[1].name:
-      return <NightscoutInstance />;
-    case steps[2].name:
+    case 0:
+      return <NightscoutInstance nightscout={snapshot} />;
+    case 1:
       return <ProfileDetails />;
+    case 2:
+      return <AutotuneJobStatus />;  
     default:
-      throw new Error(`Unknown step name '${step}'`)   ;
+      throw new Error(`Unknown step index '${step}'`)   ;
   }
 }
 
-function NavBar() {
-  return (
-    <AppBar position="static" color="primary">
-      <Toolbar>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          MySite
-        </Typography>
-        <Button color="inherit" href="#features">
-          Features
-        </Button>
-        <Button color="inherit" href="#about">
-          About
-        </Button>
-      </Toolbar>
-    </AppBar>
-  );
-}
-
-function Hero() {
-  return (
-    <Box
-      sx={{
-        py: 10,
-        bgcolor: "secondary.light",
-        textAlign: "center",
-        boxShadow: "inset 0 -10px 20px rgba(0,0,0,.05)",
-      }}
-      id="hero"
-    >
-      <Container maxWidth="md">
-        <Typography variant="h3" gutterBottom>
-          Welcome to a Material‑Design Site
-        </Typography>
-        <Typography variant="h5" paragraph>
-          Fast, responsive, and beautiful.
-        </Typography>
-        <Button
-          variant="contained"
-          size="large"
-          color="secondary"
-          href="#features"
-        >
-          Explore Features
-        </Button>
-      </Container>
-    </Box>
-  );
-}
-
-function FeatureCard({ title, description }) {
-  return (
-    <Card elevation={3}>
-      <CardContent>
-        <Typography variant="h6" gutterBottom>
-          {title}
-        </Typography>
-        <Typography>{description}</Typography>
-      </CardContent>
-      <CardActions>
-        <Button size="small">Learn More</Button>
-      </CardActions>
-    </Card>
-  );
-}
-
-function Features() {
-  const cards = [
-    {
-      title: "Responsive Layout",
-      description: "Automatically adapts to any screen size.",
-    },
-    {
-      title: "Rich Components",
-      description: "Buttons, dialogs, tooltips, and more.",
-    },
-    {
-      title: "Customizable Themes",
-      description: "Easily tweak colors and typography.",
-    },
-  ];
-
-  return (
-    <Container sx={{ py: 5 }} id="features">
-      <Grid container spacing={4}>
-        {cards.map((c, i) => (
-          <Grid item xs={12} md={4} key={i}>
-            <FeatureCard {...c} />
-          </Grid>
-        ))}
-      </Grid>
-    </Container>
-  );
-}
-
-function Footer() {
-  return (
-    <Box sx={{ bgcolor: "primary.main", py: 2, mt: 4 }}>
-      <Container maxWidth="lg">
-        <Typography variant="body2" color="common.white" align="center">
-          © 2025 AutotuneWeb – All rights reserved.
-        </Typography>
-      </Container>
-    </Box>
-  );
-}
-
 export default function App(props) {
+  const nightscout = useSyncExternalStore(nsLocalStore.subscribe, nsLocalStore.getSnapshot);
   const [activeStep, setActiveStep] = React.useState(0);
   const handleNext = () => {
     setActiveStep(activeStep + 1);
@@ -253,7 +151,7 @@ export default function App(props) {
               >
                 {steps.map((step) => (
                   <Step
-                    sx={{ ':first-child': { pl: 0 }, ':last-child': { pr: 0} }}
+                    sx={{ ':first-of-type': { pl: 0 }, ':last-of-type': { pr: 0} }}
                     key={step.name}
                   >
                     <StepLabel>{step.display_name}</StepLabel>
@@ -313,6 +211,58 @@ export default function App(props) {
                 </Step>
               ))}
             </Stepper>
+            <React.Fragment>
+              {getStepContent(activeStep, nightscout)}
+              <Box
+                sx={[
+                  {
+                    display: 'flex',
+                    flexDirection: { xs: 'column-reverse', sm: 'row' },
+                    alignItems: 'end',
+                    flexGrow: 1,
+                    gap: 1,
+                    pb: { xs: 12, sm: 0 },
+                    mt: { xs: 2, sm: 0 },
+                    mb: '60px',
+                  },
+                  activeStep !== 0
+                    ? { justifyContent: 'space-between' }
+                    : { justifyContent: 'flex-end' },
+                ]}
+              >
+                {activeStep !== 0 && (
+                  <Button
+                    startIcon={<ChevronLeftRoundedIcon />}
+                    onClick={handlePrevious}
+                    variant="text"
+                    sx={{ display: { xs: 'none', sm: 'flex' } }}
+                  >
+                    Previous
+                  </Button>
+                )}
+                {activeStep !== 0 && (
+                  <Button
+                    startIcon={<ChevronLeftRoundedIcon />}
+                    onClick={handlePrevious}
+                    variant="outlined"
+                    fullWidth
+                    sx={{ display: { xs: 'flex', sm: 'none' } }}
+                  >
+                    Previous
+                  </Button>
+                )}
+                {activeStep !== steps.length - 1 && (
+                  <Button
+                    variant="contained"
+                    endIcon={<ChevronRightRoundedIcon />}
+                    onClick={handleNext}
+                    sx={{ width: { xs: '100%', sm: 'fit-content' } }}
+                  >
+                    Next
+                  </Button>
+                )}
+              </Box>
+            </React.Fragment>
           </Box>
         </Grid>
       </Grid>
