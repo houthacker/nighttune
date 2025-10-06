@@ -1,5 +1,5 @@
 import { Cached } from '@mui/icons-material';
-import { Box, Button, CircularProgress, Divider, Fade, FormLabel, Grid, InputLabel, List, ListItem, ListItemText, MenuItem, OutlinedInput, Select, Tooltip, Typography } from '@mui/material';
+import { Box, Button, CircularProgress, Divider, Fade, FormControl, Grid, InputAdornment, InputLabel, Link, List, ListItem, ListItemText, MenuItem, OutlinedInput, Select, TextField, Tooltip, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import React from 'react';
 
@@ -36,17 +36,151 @@ async function loadProfiles({ store }) {
     return {};
 }
 
+export function InfoText() {
+    return (
+        <List sx={{ bgcolor: 'background.paper' }}>
+            <ListItem alignItems="flex-start">
+                <ListItemText
+                    primary="Nightscout profile"
+                    slotProps={{
+                        primary: { color: 'text.primary' }
+                    }}
+                    secondary={
+                        <Typography variant='body2' sx={{ color: 'text.secondary'}} >
+                            To run Autotune, your Nightscout profile must be converted to an OpenAPS
+                            profile. Some additional information is required to customize Autotune and this is
+                            also requested on this page. <br /><br />
+                            If you have multiple profiles, you can choose here which of them to use.
+                        </Typography>
+                    }
+                />
+            </ListItem>
+            <Divider variant="inset" component="li" />
+            <ListItem alignItems='flex-start'>
+                <ListItemText 
+                    primary="Reloading profiles"
+                    slotProps={{
+                        primary: { color: 'text.primary' }
+                    }}
+                    secondary={
+                        <Typography variant='body2' sx={{ color: 'text.secondary' }} >
+                            If you notice that some profile details are not what you expect, you can update your profile
+                            and reload the profiles from your Nightscout instance.
+                        </Typography>
+                    }
+                />
+            </ListItem>
+            <Divider variant="inset" component="li" />
+            <ListItem alignItems='flex-start'>
+                <ListItemText 
+                    primary="Min. 5 minutes Carb Impact"
+                    slotProps={{
+                        primary: { color: 'text.primary' }
+                    }}
+                    secondary={
+                        <Typography variant='body2' sx={{ color: 'text.secondary' }} >
+                            When carb absorption can't be dynamically worked out based on your blood's reactions,
+                            the minimum 5-minute carb impact will be used as a failasfe.<br />
+                            It's used only when there are gaps in CGM readings or when physical activity 'uses up'
+                            all the blood glucose rise that would otherwise cause a <dfn><abbr>COB</abbr> (Carbs On Board)</dfn> decay.
+                            <br /><br />
+
+                            <em>Note</em>&nbsp;
+                            If you use AndroisAPS in simple mode, this setting is hidden there.
+                        </Typography>
+                    }
+                />
+            </ListItem>
+            <Divider variant="inset" component="li" />
+            <ListItem alignItems='flex-start'>
+                <ListItemText 
+                    primary="Pump Basal Increment"
+                    slotProps={{
+                        primary: { color: 'text.primary' }
+                    }}
+                    secondary={
+                        <Typography variant='body2' sx={{ color: 'text.secondary' }} >
+                            Autotune will likely recommend basals in fractions of a unit that you can't
+                            program into your pump, so enter here what increments your pump can handle (0.1, 0.5 etc.) 
+                            to get your results rounded for you.
+                        </Typography>
+                    }
+                />
+            </ListItem>
+            <ListItem alignItems='flex-start'>
+                <ListItemText 
+                    primary="Days of data"
+                    slotProps={{
+                        primary: { color: 'text.primary' }
+                    }}
+                    secondary={
+                        <Typography variant='body2' sx={{ color: 'text.secondary' }} >
+                            Configure the amount of days of treatment data autotune will use for this job.
+                            If you don't know what to choose, 7 days is a good one to start with.
+                        </Typography>
+                    }
+                />
+            </ListItem>
+            <ListItem alignItems='flex-start'>
+                <ListItemText 
+                    primary="Insulin type"
+                    slotProps={{
+                        primary: { color: 'text.primary' }
+                    }}
+                    secondary={
+                        <Typography variant='body2' sx={{ color: 'text.secondary' }} >
+                            Select your insulin type to let autotune know how fast it acts and decays.
+                        </Typography>
+                    }
+                />
+            </ListItem>
+            <ListItem alignItems='flex-start'>
+                <ListItemText 
+                    primary="Email address"
+                    slotProps={{
+                        primary: { color: 'text.primary' }
+                    }}
+                    secondary={
+                        <Typography variant='body2' sx={{ color: 'text.secondary' }} >
+                            Autotune can take a few minutes to run, depending on the amount of days you chose
+                            and how many jobs are queued. <br />
+                            If you don't want to watch this site for that long, leave your email address here and you'll
+                            receive the results there once the job has finished.<br /><br />
+                            
+                            If you don't like to leave you email address here, you can always return at 
+                            a later time after submitting the job and inspect the results then.
+                        </Typography>
+                    }
+                />
+            </ListItem>
+        </List>
+    );
+}
+
 export default function ProfileDetails({ store }) {
+    const snapshot = store.getSnapshot();
     const [isLoaded, setLoaded] = React.useState(false);
     const [profiles, setProfiles] = React.useState({store: {}});
     const [defaultProfile, setDefaultProfile] = React.useState('');
     const [selectedProfile, setSelectedProfile] = React.useState('__default__');
     const [profileNames, setProfileNames] = React.useState([]);
+    const [conversionSettings, setConversionSettings] = React.useState({
+        min_5m_carbimpact: 8.0,
+        pump_basal_increment: 0.01,
+        autotune_days: 7,
+        insulin_type: '__default__',
+        email_address: '',
+        ... snapshot.conversion_settings
+    });
 
     const setStates = async (data) => {
         setProfiles(data);
         setProfileNames([...Object.keys(data.store)].reverse());
         setDefaultProfile(data.defaultProfile);
+
+        if (snapshot.conversion_settings.profile_name) {
+            setSelectedProfile(snapshot.conversion_settings.profile_name);
+        }
 
         setLoaded(true);
     };
@@ -64,7 +198,12 @@ export default function ProfileDetails({ store }) {
     }, [store, isLoaded]);
 
     const onProfileSelected = (event) => {
+        let newSettings = {...conversionSettings, profile_name: event.target.value, profile_data: profiles.store[event.target.value]};
+
         setSelectedProfile(event.target.value);
+        setConversionSettings({...newSettings});
+        store.setConversionSettings({...newSettings});
+        
         console.log(profiles.store[event.target.value]);
     };
 
@@ -78,18 +217,20 @@ export default function ProfileDetails({ store }) {
         setSelectedProfile('__default__');
         setProfileNames([]);
 
-        // And then fetch the new data
+        // Set states to newly fetched data.
         setStates(await loadProfiles({ store }));
-
-
     };
 
-    // TODO: Add Grid that displays values of selected profile. And error-handling @:53 (networkerror)
+    const onConversionSettingUpdated = (update) => {
+        let newSettings = {...conversionSettings, ...update};
+        setConversionSettings({...newSettings});
+        store.setConversionSettings({...newSettings});
+    };
     
     return (
         <>
             <Fade
-                in={isLoaded===false}
+                in={isLoaded === false}
                 style={{
                     transitionDelay: isLoaded ? '0ms' : '800ms',
                 }}
@@ -126,9 +267,8 @@ export default function ProfileDetails({ store }) {
                             onChange={onProfileSelected}
                         >
                             <MenuItem selected='true' value='__default__'>Select a profile...</MenuItem>
-                            <MenuItem value={defaultProfile}>{defaultProfile} (default)</MenuItem>
-                            {profileNames.filter(e => e !== defaultProfile).map((name) => 
-                                <MenuItem value={name}>{name}</MenuItem>
+                            {profileNames.map((name) => 
+                                <MenuItem value={name}>{name === defaultProfile ? `${name} (default)` : name}</MenuItem>
                             )}
                         </Select>
                         <Tooltip title="If your profile changed after loading it, reload the profiles to use those changes.">
@@ -155,7 +295,7 @@ export default function ProfileDetails({ store }) {
                                     </Grid>
                                     <Grid size={9}>
                                         <Typography variant='caption' color='textDisabled'>
-                                            DIA stands for <em>Duration of Insulin Activity</em>, and is the length
+                                            DIA stands for <em>Duration of Insulin Activity</em>, and is the amount
                                             of time that insulin takes to decay to zero. In AndroidAPS, the minimum
                                             DIA is 5 hours.
                                         </Typography>
@@ -192,6 +332,108 @@ export default function ProfileDetails({ store }) {
                         </List>
                     </Box>
                 )}
+            </React.Activity>
+            <React.Activity mode={selectedProfile === '__default__' ? 'hidden' : 'visible'}>
+                <Box>
+                    <Typography variant='h5' sx={{ color: 'text.primary' }}>
+                        Conversion settings
+                    </Typography>
+                    <Typography variant='caption' color='textSecondary'>
+                        To convert your Nightscout profile, some additional information is required.
+                    </Typography>
+                    <Divider sx={{ opacity: 0.6 }} />
+                    <List dense={true} disablePadding={true} sx={{ width: '100%'}} >
+                        <ListItem key='li-min-5m-carbimpact' divider={true}>
+                            <Grid container spacing={2}>
+                                <TextField 
+                                    label="Min. 5 minutes Carb Impact"
+                                    id='min-5m-carbimpact'
+                                    required
+                                    type='number'
+                                    defaultValue={conversionSettings.min_5m_carbimpact}
+                                    onBlur={e => onConversionSettingUpdated({...conversionSettings, min_5m_carbimpact: e.target.value})}
+                                    sx={{ m: 1, width: '25ch' }}
+                                    slotProps={{
+                                        input: {
+                                            endAdornment: <InputAdornment position='end'>gr</InputAdornment>
+                                        }
+                                    }}
+                                />
+                            </Grid>
+                        </ListItem>
+                        <ListItem key='li-pump-basal-increment' divider={true}>
+                            <Grid container spacing={2}>
+                                <TextField 
+                                    label="Pump basal increment"
+                                    id='pump-basal-increment'
+                                    required
+                                    type='number'
+                                    defaultValue={conversionSettings.pump_basal_increment}
+                                    onBlur={e => onConversionSettingUpdated({...conversionSettings, pump_basal_increment: e.target.value})}
+                                    sx={{ m: 1, width: '25ch' }}
+                                    slotProps={{
+                                        input: {
+                                            endAdornment: <InputAdornment position='end'>IE</InputAdornment>
+                                        },
+                                        htmlInput: {
+                                            step: 0.01,
+                                        },
+                                    }}
+                                />
+                            </Grid>
+                        </ListItem>
+                        <ListItem key='li-autotune-days' divider={true}>
+                            <Grid container spacing={2}>
+                                <TextField 
+                                    label="Days of data (max 30)"
+                                    id='autotune-days'
+                                    required
+                                    type='number'
+                                    defaultValue={conversionSettings.autotune_days}
+                                    onBlur={e => onConversionSettingUpdated({...conversionSettings, autotune_days: e.target.value})}
+                                    sx={{ m: 1, width: '25ch' }}
+                                    slotProps={{
+                                        input: {
+                                            endAdornment: <InputAdornment position='end'>IE</InputAdornment>,
+                                        },
+                                        htmlInput: {
+                                            min: 1,
+                                            max: 30,
+                                        },
+                                    }}
+                                />
+                            </Grid>
+                        </ListItem>
+                        <ListItem key='li-insulin-type' divider={true}>
+                            <FormControl sx={{ m: 1, minWidth: 200 }} size='small'>
+                                <InputLabel id='lbl-insulin-type'>Insulin type</InputLabel>
+                                <Select
+                                    labelId='lbl-insulin-type'
+                                    id='insulin-type'
+                                    value={conversionSettings.insulin_type}
+                                    onChange={e => onConversionSettingUpdated({...conversionSettings, insulin_type: e.target.value})}
+                                >
+                                    <MenuItem selected='true' value='__default__'>Select a type...</MenuItem>
+                                    <MenuItem value='rapid-acting'>Rapid Acting (Humalog/Novolog/Novorapid)</MenuItem>
+                                    <MenuItem value='ultra-rapid'>Ultra Rapid (Fiasp)</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </ListItem>
+                        <ListItem key='li-email-address' divider={true}>
+                            <Grid container spacing={2}>
+                                <TextField 
+                                    label="Email address"
+                                    id='email-address'
+                                    defaultValue={conversionSettings.email_address}
+                                    onChange={e => onConversionSettingUpdated({...conversionSettings, email_address: e.target.value})}
+                                    type='email'
+                                    sx={{ m: 1, width: '35ch' }}
+                                />
+                            </Grid>
+                        </ListItem>
+                    </List>
+
+                </Box>
             </React.Activity>
         </>
     );
