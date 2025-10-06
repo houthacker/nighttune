@@ -174,15 +174,17 @@ export default function ProfileDetails({ store }) {
     });
 
     const setStates = async (data) => {
-        setProfiles(data);
-        setProfileNames([...Object.keys(data.store)].reverse());
-        setDefaultProfile(data.defaultProfile);
+        if (data) {
+            setProfiles(data);
+            setProfileNames([...Object.keys(data.store)].reverse());
+            setDefaultProfile(data.defaultProfile);
 
-        if (snapshot.conversion_settings.profile_name) {
-            setSelectedProfile(snapshot.conversion_settings.profile_name);
+            if (snapshot.conversion_settings.profile_name) {
+                setSelectedProfile(snapshot.conversion_settings.profile_name);
+            }
+
+            setLoaded(true);
         }
-
-        setLoaded(true);
     };
 
     React.useEffect(() => {
@@ -394,7 +396,7 @@ export default function ProfileDetails({ store }) {
                                     sx={{ m: 1, width: '25ch' }}
                                     slotProps={{
                                         input: {
-                                            endAdornment: <InputAdornment position='end'>IE</InputAdornment>,
+                                            endAdornment: <InputAdornment position='end'>days</InputAdornment>,
                                         },
                                         htmlInput: {
                                             min: 1,
@@ -410,6 +412,7 @@ export default function ProfileDetails({ store }) {
                                 <Select
                                     labelId='lbl-insulin-type'
                                     id='insulin-type'
+                                    required
                                     value={conversionSettings.insulin_type}
                                     onChange={e => onConversionSettingUpdated({...conversionSettings, insulin_type: e.target.value})}
                                 >

@@ -32,7 +32,7 @@ import HighlightOffOutlinedIcon from '@mui/icons-material/HighlightOffOutlined';
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 
-import store from './utils/localStore';
+import store, { STORE_EVENT_TYPES } from './utils/localStore';
 
 // The steps to successfully queue an autotune job
 const steps = [
@@ -47,10 +47,10 @@ const steps = [
  * @param {object} store The app data store.
  * @throws Error if the step is unknown.
  */
-function getStepContent(step, store) {
+function getStepContent(step, store, preventNext) {
   switch (step) {
     case 0:
-      return <NightscoutInstance store={store} />;
+      return <NightscoutInstance store={store} preventNext={preventNext} />;
     case 1:
       return <ProfileDetails store={store} />;
     case 2:
@@ -61,12 +61,15 @@ function getStepContent(step, store) {
 }
 
 export default function App(props) {
-  // Read data from local storage into ns store if it is not initialized yet.
-  store.init();
-
+  // Error state shared with child components
+  const [preventNext, setPreventNext] = React.useState(true);
   const [alertOpen, setAlertOpen] = React.useState(false);
   const [activeStep, setActiveStep] = React.useState(0);
-  const handleNext = async () => {
+
+  // Read data from local storage into ns store if it is not initialized yet.
+  store.init();
+  
+  const handleNext = () => {
     setActiveStep(activeStep + 1);
   };
   const handlePrevious = () => {
@@ -81,6 +84,7 @@ export default function App(props) {
   const handleResetConfirmed = () => {
     setAlertOpen(false);
     store.clear();
+    location.reload(false);
   }
   return (
     <AppTheme {...props}>
@@ -251,7 +255,7 @@ export default function App(props) {
               ))}
             </Stepper>
             <React.Fragment>
-              {getStepContent(activeStep, store)}
+              {getStepContent(activeStep, store, setPreventNext)}
               <Box
                 sx={[
                   {
@@ -314,7 +318,7 @@ export default function App(props) {
                     variant="contained"
                     endIcon={<ChevronRightRoundedIcon />}
                     onClick={handleNext}
-                    sx={{ width: { xs: '100%', sm: 'fit-content' } }}
+                    sx={{ width: { xs: '100%', sm: 'fit-content', display: preventNext ? 'none' : 'flex' } }}
                   >
                     Next
                   </Button>

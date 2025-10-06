@@ -2,7 +2,21 @@
 // Storage key for Nightscout instance data.
 const NS_STORAGE_KEY = 'ns-instance';
 
-let listeners = [];
+let listeners = new Set();
+
+export const STORE_EVENT_TYPES = {
+    SET_URL: 'set_url',
+    SET_TOKEN: 'set_token',
+    SET_CONVERSION_SETTINGS: 'set_conversion_settings',
+    CLEAR: 'clear',
+};
+
+const INITIAL_STORE = {
+    profiles: {
+        store: {}
+    },
+    conversion_settings: {},
+}
 
 /**
  * @typedef {object} ConversionSettings
@@ -22,14 +36,11 @@ let listeners = [];
  * @property {object} profiles - The Nightscout profiles
  * @property {ConversionSettings} conversion_settings - The conversion settings by profile name.
  */
-let intermediate_store = {
-    profiles: {},
-    conversion_settings: {}
-};
+let intermediate_store = {...INITIAL_STORE};
 
-function emitChange() {
+function emitChange(event_type) {
     for (let listener of listeners) {
-        listener();
+        listener(event_type);
     }
 }
 
@@ -44,7 +55,7 @@ export default {
         snapshot.url = url;
 
         localStorage.setItem(NS_STORAGE_KEY, JSON.stringify({...snapshot}));
-        emitChange();
+        emitChange(STORE_EVENT_TYPES.SET_URL);
     },
 
     /**
@@ -57,7 +68,7 @@ export default {
         snapshot.access_token = token;
 
         localStorage.setItem(NS_STORAGE_KEY, JSON.stringify({...snapshot}));
-        emitChange();
+        emitChange(STORE_EVENT_TYPES.SET_TOKEN);
     },
 
     /**
@@ -69,12 +80,12 @@ export default {
         snapshot.conversion_settings = conversion_settings;
 
         localStorage.setItem(NS_STORAGE_KEY, JSON.stringify({...snapshot}));
-        emitChange();
+        emitChange(STORE_EVENT_TYPES.SET_CONVERSION_SETTINGS);
     },
 
     init() {
-        if (JSON.stringify(intermediate_store) === '{}') {
-            const data = JSON.parse(localStorage.getItem(NS_STORAGE_KEY) || '{}');
+        if (JSON.stringify(intermediate_store) === JSON.stringify(INITIAL_STORE)) {
+            const data = JSON.parse(localStorage.getItem(NS_STORAGE_KEY)) || {...INITIAL_STORE};
             intermediate_store = {...data};
         }
     },
@@ -85,6 +96,8 @@ export default {
             profiles: {},
             conversion_settings: {},
         }
+
+        emitChange(STORE_EVENT_TYPES.CLEAR);
     },
 
     /**
@@ -105,9 +118,9 @@ export default {
      * @returns {UnsubscribeFn} A callback to unsibscribe `listener`.
      */
     subscribe(listener) {
-        listeners = [...listeners, listener];
+        listeners.add(listener);
         return () => {
-            listeners = listeners.filter(l => l !== listener);
+            listeners.delete(listener);
         }
     },
 

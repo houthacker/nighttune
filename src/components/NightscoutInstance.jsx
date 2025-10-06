@@ -1,6 +1,7 @@
 import React from 'react';
-import { Divider, Grid, FormLabel, List, ListItem, ListItemText, Link, OutlinedInput, Typography } from '@mui/material';
+import { Divider, Grid, FormLabel, List, ListItem, ListItemText, Link, OutlinedInput, Typography, TextField } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { STORE_EVENT_TYPES } from '../utils/localStore';
 
 const FormGrid = styled(Grid)(() => ({
     display: 'flex',
@@ -53,9 +54,26 @@ export function InfoText() {
  * 
  * @param {object} store - The Nightscout storage data.
  */
-export function NightscoutInstance({ store }) {
+export function NightscoutInstance({ store, preventNext }) {
     let nightscout = store.getSnapshot();
+
+    // With initial values, disable preventNext by validating url.
+    let prevent = true;
+    if (nightscout.url) {
+        try {
+            new URL(nightscout.url);
+            prevent = false;
+        } catch {
+            prevent = true;
+        }
+    }
+
+    React.useEffect(() => {
+        preventNext(prevent);
+    })
+
     const [url, setUrl] = React.useState(nightscout.url);
+    const [urlError, setUrlError] = React.useState(false);
     const [token, setToken] = React.useState(nightscout.access_token);
 
     const handleUrlBlur = (event) => {
@@ -68,32 +86,59 @@ export function NightscoutInstance({ store }) {
         store.setToken(event.target.value);
     };
 
+    const store_unsubcribe = store.subscribe((event_type) => {
+        if (event_type === STORE_EVENT_TYPES.CLEAR) {
+            setUrl('');
+            setToken('');
+        }
+    });
+
+    const handleUrlChange = (e) => {
+        setUrl(e.target.value);
+        let haveError = !(e.target.value && e.target.validity.valid);
+        
+        setUrlError(haveError);
+        preventNext(haveError);
+    }
+
+    // Unsubscribe from store when unmounting
+    React.useEffect(() => {
+        return () => {
+            store_unsubcribe();
+        }
+    });
+
     return (
         <Grid container spacing={3}>
             <FormGrid size={{ xs: 21, md: 6}}>
                 <FormLabel htmlFor="ns-url" required>
                     Nightscout URL
                 </FormLabel>
-                <OutlinedInput 
+                <TextField 
                     id="ns-url"
                     name="ns-url"
                     type="url"
                     onBlur={handleUrlBlur}
+                    onChange={handleUrlChange}
+                    error={urlError}
                     placeholder="https://my.nightscout.url"
                     required
-                    defaultValue={url}
+                    value={url}
                     size="small"
-                />
+                    helperText={urlError ? 'Invalid URL' : ''}
+                    variant='outlined'
+                >{url}</TextField>
             </FormGrid>
             <FormGrid size={{ xs: 12, md: 6}}>
                 <FormLabel htmlFor="ns-token">Nightscout Access token</FormLabel>
-                <OutlinedInput 
+                <TextField 
                     id="ns-token"
                     name="ns-token"
                     type="password"
                     onBlur={handleTokenBlur}
                     placeholder="Put your Nightscout access token here"
-                    defaultValue={token}
+                    value={token}
+                    onChange={(e) => setToken(e.target.value)}
                     size="small"
                 />
             </FormGrid>
