@@ -11,6 +11,11 @@ import {
   Stepper,
   Step,
   StepLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from '@mui/material';
 
 import AutotuneJobStatus from './components/AutotuneJobStatus';
@@ -23,6 +28,7 @@ import NightscoutIcon from "./components/NightscoutIcon";
 import Info from "./components/Info";
 import InfoMobile from "./components/InfoMobile";
 
+import HighlightOffOutlinedIcon from '@mui/icons-material/HighlightOffOutlined';
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 
@@ -58,6 +64,7 @@ export default function App(props) {
   // Read data from local storage into ns store if it is not initialized yet.
   store.init();
 
+  const [alertOpen, setAlertOpen] = React.useState(false);
   const [activeStep, setActiveStep] = React.useState(0);
   const handleNext = async () => {
     setActiveStep(activeStep + 1);
@@ -65,12 +72,43 @@ export default function App(props) {
   const handlePrevious = () => {
     setActiveStep(activeStep - 1);
   };
+  const handleResetData = () => {
+    setAlertOpen(true);
+  };
+  const handleResetDeclined = () => {
+    setAlertOpen(false);
+  }
+  const handleResetConfirmed = () => {
+    setAlertOpen(false);
+    store.clear();
+  }
   return (
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
       <Box sx={{ position: 'fixed', top: '1rem', right: '1rem' }}>
         <ColorModeIconDropdown />
       </Box>
+
+      <Dialog
+        open={alertOpen}
+        onClose={handleResetConfirmed}
+      >
+        <DialogTitle>
+          Reset nighttune data?
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Do you want to reset all your nighttune data?<br /><br />
+            If you reset the nighttune data, you have to re-enter the details of your Nightscout instance and
+            any conversion data you have entered before.<br /><br />
+            Resetting nighttune data does not influence any data in your Nightscout instance.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleResetDeclined} autoFocus>No</Button>
+          <Button onClick={handleResetConfirmed}>Yes</Button>
+        </DialogActions>
+      </Dialog>
 
       <Grid
         container
@@ -226,11 +264,30 @@ export default function App(props) {
                     mt: { xs: 2, sm: 0 },
                     mb: '60px',
                   },
-                  activeStep !== 0
-                    ? { justifyContent: 'space-between' }
-                    : { justifyContent: 'flex-end' },
+                  { justifyContent: 'space-between' }
                 ]}
               >
+                {activeStep === 0 && (
+                  <Button
+                    startIcon={<HighlightOffOutlinedIcon />}
+                    onClick={handleResetData}
+                    variant="text"
+                    sx={{ display: { xs: 'none', sm: 'flex' } }}
+                  >
+                    Reset
+                  </Button>
+                )}
+                {activeStep === 0 && (
+                  <Button
+                    startIcon={<HighlightOffOutlinedIcon />}
+                    onClick={handleResetData}
+                    variant="outlined"
+                    fullWidth
+                    sx={{ display: { xs: 'flex', sm: 'none' } }}
+                  >
+                    Reset
+                  </Button>
+                )}
                 {activeStep !== 0 && (
                   <Button
                     startIcon={<ChevronLeftRoundedIcon />}
