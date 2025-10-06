@@ -8,6 +8,7 @@ let listeners = [];
  * @typedef Snapshot
  * @property {string} url - The Nightscout URL
  * @property {string} access_token - The Nightscout access token 
+ * @property {object} profiles - The Nightscout profiles
  */
 let intermediate_store = {};
 
@@ -42,6 +43,21 @@ export default {
 
         localStorage.setItem(NS_STORAGE_KEY, JSON.stringify({...snapshot}));
         emitChange();
+    },
+
+    setProfiles(profiles) {
+        let snapshot = this.getSnapshot();
+        snapshot.profiles = profiles;
+
+        localStorage.setItem(NS_STORAGE_KEY, JSON.stringify({...snapshot}));
+        emitChange();
+    },
+
+    init() {
+        if (JSON.stringify(intermediate_store) === '{}') {
+            const data = JSON.parse(localStorage.getItem(NS_STORAGE_KEY) || '{}');
+            intermediate_store = {...data};
+        }
     },
 
     /**

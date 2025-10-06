@@ -1,6 +1,5 @@
 // src/App.js
 import * as React from 'react';
-import { useSyncExternalStore } from 'react';
 import {
   Typography,
   Button,
@@ -27,7 +26,7 @@ import InfoMobile from "./components/InfoMobile";
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 
-import nsLocalStore from './utils/localStore';
+import store from './utils/localStore';
 
 // The steps to successfully queue an autotune job
 const steps = [
@@ -39,15 +38,15 @@ const steps = [
 /**
  * Gets the UI element for the given step name.
  * @param {number} step The index of the step to get the content of.
- * @param {Snapshot} snapshot The current state of the app.
+ * @param {object} store The app data store.
  * @throws Error if the step is unknown.
  */
-function getStepContent(step, snapshot) {
+function getStepContent(step, store) {
   switch (step) {
     case 0:
-      return <NightscoutInstance nightscout={snapshot} />;
+      return <NightscoutInstance store={store} />;
     case 1:
-      return <ProfileDetails />;
+      return <ProfileDetails store={store} />;
     case 2:
       return <AutotuneJobStatus />;  
     default:
@@ -56,9 +55,11 @@ function getStepContent(step, snapshot) {
 }
 
 export default function App(props) {
-  const nightscout = useSyncExternalStore(nsLocalStore.subscribe, nsLocalStore.getSnapshot);
+  // Read data from local storage into ns store if it is not initialized yet.
+  store.init();
+
   const [activeStep, setActiveStep] = React.useState(0);
-  const handleNext = () => {
+  const handleNext = async () => {
     setActiveStep(activeStep + 1);
   };
   const handlePrevious = () => {
@@ -212,7 +213,7 @@ export default function App(props) {
               ))}
             </Stepper>
             <React.Fragment>
-              {getStepContent(activeStep, nightscout)}
+              {getStepContent(activeStep, store)}
               <Box
                 sx={[
                   {

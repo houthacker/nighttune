@@ -1,7 +1,8 @@
 import React from 'react';
 import { Divider, Grid, FormLabel, List, ListItem, ListItemText, Link, OutlinedInput, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import nsLocalStore from '../utils/localStore';
+
+const encoder = new TextEncoder();
 
 const FormGrid = styled(Grid)(() => ({
     display: 'flex',
@@ -51,9 +52,22 @@ export function InfoText() {
 
 /**
  * 
- * @param {Snapshot} nightsocut - A Nightscout storage snapshot
+ * @param {object} store - The Nightscout storage data.
  */
-export function NightscoutInstance({ nightscout }) {
+export function NightscoutInstance({ store }) {
+    let nightscout = store.getSnapshot();
+    const [url, setUrl] = React.useState(nightscout.url);
+    const [token, setToken] = React.useState(nightscout.access_token);
+
+    const handleUrlBlur = (event) => {
+        setUrl(event.target.value);
+        store.setUrl(event.target.value);
+    };
+
+    const handleTokenBlur = (event) => {
+        setToken(event.target.value);
+        store.setToken(event.target.value);
+    };
 
     return (
         <Grid container spacing={3}>
@@ -65,10 +79,10 @@ export function NightscoutInstance({ nightscout }) {
                     id="ns-url"
                     name="ns-url"
                     type="url"
-                    onBlur={(event) => { nsLocalStore.setUrl(event.target.value) }}
+                    onBlur={handleUrlBlur}
                     placeholder="https://my.nightscout.url"
                     required
-                    value={nightscout.url}
+                    defaultValue={url}
                     size="small"
                 />
             </FormGrid>
@@ -78,9 +92,9 @@ export function NightscoutInstance({ nightscout }) {
                     id="ns-token"
                     name="ns-token"
                     type="password"
-                    onBlur={(event) => { nsLocalStore.setToken(event.target.value) }}
+                    onBlur={handleTokenBlur}
                     placeholder="Put your Nightscout access token here"
-                    value={nightscout.access_token}
+                    defaultValue={token}
                     size="small"
                 />
             </FormGrid>
