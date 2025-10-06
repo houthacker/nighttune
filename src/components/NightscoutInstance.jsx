@@ -2,8 +2,6 @@ import React from 'react';
 import { Divider, Grid, FormLabel, List, ListItem, ListItemText, Link, OutlinedInput, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
-const encoder = new TextEncoder();
-
 const FormGrid = styled(Grid)(() => ({
     display: 'flex',
     flexDirection: 'column',
@@ -38,7 +36,8 @@ export function InfoText() {
                                 to let this site access your instance. Note that using <code>API_SECRET</code> will <em>not</em> work. 
                                 <br /><br />
                                 It is <em>strongly</em> recommended that you create a token just for this site to keep your
-                                Nightscout instance safe if that token would ever leak, despite all measures taken to prevent that.
+                                Nightscout instance safe. If that token would ever leak, you would only need to invalidate it
+                                instead of securing your whole Nightscout instance again.
                                 <br /><br />
                                 Instructions on how to add an access token are located at <Link target="_blank" rel="noopener" href="https://nightscout.github.io/nightscout/admin_tools/#create-a-token">https://nightscout.github.io/nightscout/admin_tools/#create-a-token</Link>
                                 
