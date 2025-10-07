@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Cached, ExpandLess as ExpandLessIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
+import { Cached, ExpandLess as ExpandLessIcon, ExpandMore as ExpandMoreIcon, Newspaper, WarningAmber as WarningAmberIcon } from '@mui/icons-material';
 import { Box, Button, CircularProgress, Collapse, Divider, Fade, FormControl, Grid, InputAdornment, InputLabel, List, ListItem, ListItemButton, ListItemIcon, ListItemText, MenuItem, Select, TextField, Tooltip, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { InsulinType } from '../utils/constants';
@@ -207,7 +207,7 @@ export function InfoText() {
                                 <Typography variant='body2' sx={{ color: 'text.secondary' }} >
                                     <Typography variant='body2' sx={{ color: 'red' }}>
                                         Unless you absolutely know what you're doing, leave this value at 
-                                        its default of 0.7!<br /><br />
+                                        its default of 0.7. You'll get a warning sign if the value has changed.<br /><br />
                                     </Typography>
                                     Autosens is an algorithm that adjusts your basal and ISF based
                                     on the sensitivity or resistance it calculates. This calculation
@@ -230,7 +230,7 @@ export function InfoText() {
                                 <Typography variant='body2' sx={{ color: 'text.secondary' }} >
                                     <Typography variant='body2' sx={{ color: 'red' }}>
                                         Unless you absolutely know what you're doing, leave this value at 
-                                        its default of 1.2!<br /><br />
+                                        its default of 1.2. You'll get a warning sign if the value has changed.<br /><br />
                                     </Typography>
                                     Autosens is an algorithm that adjusts your basal and ISF based
                                     on the sensitivity or resistance it calculates. This calculation
@@ -551,13 +551,23 @@ export default function ProfileDetails({ store, setErrorInfo }) {
                                             label="Autosens min"
                                             id='autosens-min'
                                             defaultValue={conversionSettings.autosens_min}
-                                            onChange={e => onConversionSettingUpdated({...conversionSettings, autosens_min: e.target.value})}
+                                            onChange={e => onConversionSettingUpdated({...conversionSettings, autosens_min: parseFloat(e.target.value)})}
                                             type='number'
                                             sx={{ m: 1, width: '35ch', }}
                                             slotProps={{
+                                                input: {
+                                                    startAdornment: conversionSettings.autosens_min !== 0.7 
+                                                        ? <Tooltip 
+                                                                placement='auto'
+                                                                title='Warning: autosens_min has a non-default value.'
+                                                          ><InputAdornment position='start' >
+                                                            <WarningAmberIcon />
+                                                          </InputAdornment></Tooltip> 
+                                                        : ''
+                                                },
                                                 htmlInput: {
                                                     step: 0.1
-                                                }
+                                                },
                                             }}
                                         />
                                     </Grid>
@@ -568,10 +578,20 @@ export default function ProfileDetails({ store, setErrorInfo }) {
                                             label="Autosens max"
                                             id='autosens-max'
                                             defaultValue={conversionSettings.autosens_max}
-                                            onChange={e => onConversionSettingUpdated({...conversionSettings, autosens_max: e.target.value})}
+                                            onChange={e => onConversionSettingUpdated({...conversionSettings, autosens_max: parseFloat(e.target.value)})}
                                             type='number'
                                             sx={{ m: 1, width: '35ch', }}
                                             slotProps={{
+                                                input: {
+                                                    startAdornment: conversionSettings.autosens_max !== 1.2 
+                                                        ? <Tooltip 
+                                                                placement='auto'
+                                                                title='Warning: autosens_max has a non-default value.'
+                                                          ><InputAdornment position='start' >
+                                                            <WarningAmberIcon />
+                                                          </InputAdornment></Tooltip> 
+                                                        : ''
+                                                },
                                                 htmlInput: {
                                                     step: 0.1
                                                 }
