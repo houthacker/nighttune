@@ -1,7 +1,9 @@
-import { Cached } from '@mui/icons-material';
-import { Box, Button, CircularProgress, Divider, Fade, FormControl, Grid, InputAdornment, InputLabel, Link, List, ListItem, ListItemText, MenuItem, OutlinedInput, Select, TextField, Tooltip, Typography } from '@mui/material';
-import { styled } from '@mui/material/styles';
 import React from 'react';
+
+import { Cached, ExpandLess as ExpandLessIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
+import { Box, Button, CircularProgress, Collapse, Divider, Fade, FormControl, Grid, InputAdornment, InputLabel, List, ListItem, ListItemButton, ListItemIcon, ListItemText, MenuItem, Select, TextField, Tooltip, Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import { InsulinType } from '../utils/constants';
 
 const encoder = new TextEncoder();
 
@@ -61,6 +63,12 @@ async function loadProfiles({ store, setErrorInfo }) {
 }
 
 export function InfoText() {
+    const [advancedSettingsOpened, openAdvancedSettings] = React.useState(false);
+
+    const onAdvancedClicked = () => {
+        openAdvancedSettings(!advancedSettingsOpened);
+    };
+
     return (
         <List sx={{ bgcolor: 'background.paper' }}>
             <ListItem alignItems="flex-start">
@@ -177,12 +185,73 @@ export function InfoText() {
                     }
                 />
             </ListItem>
+            <ListItemButton onClick={onAdvancedClicked}>
+                <ListItemIcon>
+                    {advancedSettingsOpened ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                </ListItemIcon>
+                <ListItemText primary="Advanced settings" />
+            </ListItemButton>
+            <Collapse
+                in={advancedSettingsOpened}
+                timeout='auto'
+                unmountOnExit
+            >
+                <List dense={true} disablePadding={true} sx={{ width: '90%'}}>
+                    <ListItem alignItems='flex-start'>
+                        <ListItemText
+                            primary="Autosens min"
+                            slotProps={{
+                                primary: { color: 'text.primary'}
+                            }}
+                            secondary={
+                                <Typography variant='body2' sx={{ color: 'text.secondary' }} >
+                                    <Typography variant='body2' sx={{ color: 'red' }}>
+                                        Unless you absolutely know what you're doing, leave this value at 
+                                        its default of 0.7!<br /><br />
+                                    </Typography>
+                                    Autosens is an algorithm that adjusts your basal and ISF based
+                                    on the sensitivity or resistance it calculates. This calculation
+                                    is ran off the more sensitive of a combination of 24 and 8 hours 
+                                    worth of data.<br />
+                                    <code>autosens_min</code> is used to limit the algorithm so it
+                                    doesn't use a too low percentage.
+                                </Typography>
+                            }
+                        >
+                        </ListItemText>
+                    </ListItem>
+                    <ListItem alignItems='flex-start'>
+                        <ListItemText
+                            primary="Autosens max"
+                            slotProps={{
+                                primary: { color: 'text.primary'}
+                            }}
+                            secondary={
+                                <Typography variant='body2' sx={{ color: 'text.secondary' }} >
+                                    <Typography variant='body2' sx={{ color: 'red' }}>
+                                        Unless you absolutely know what you're doing, leave this value at 
+                                        its default of 1.2!<br /><br />
+                                    </Typography>
+                                    Autosens is an algorithm that adjusts your basal and ISF based
+                                    on the sensitivity or resistance it calculates. This calculation
+                                    is ran off the more sensitive of a combination of 24 and 8 hours 
+                                    worth of data.<br />
+                                    <code>autosens_max</code> is used to limit the algorithm so it
+                                    doesn't use a too high percentage.
+                                </Typography>
+                            }
+                        >
+                        </ListItemText>
+                    </ListItem>
+                </List>
+            </Collapse>
         </List>
     );
 }
 
 export default function ProfileDetails({ store, setErrorInfo }) {
     const snapshot = store.getSnapshot();
+    const [advancedSettingsOpened, openAdvancedSettings] = React.useState(false);
     const [isLoaded, setLoaded] = React.useState(false);
     const [profiles, setProfiles] = React.useState({store: {}});
     const [defaultProfile, setDefaultProfile] = React.useState('');
@@ -194,6 +263,8 @@ export default function ProfileDetails({ store, setErrorInfo }) {
         autotune_days: 7,
         insulin_type: '__default__',
         email_address: '',
+        autosens_min: 0.7,
+        autosens_max: 1.2,
         ... snapshot.conversion_settings
     });
 
@@ -222,6 +293,10 @@ export default function ProfileDetails({ store, setErrorInfo }) {
             fetchData();
         }
     }, [store, isLoaded, setErrorInfo]);
+
+    const onAdvancedClicked = () => {
+        openAdvancedSettings(!advancedSettingsOpened);
+    };
 
     const onProfileSelected = (event) => {
         let newSettings = {...conversionSettings, profile_name: event.target.value, profile_data: profiles.store[event.target.value]};
@@ -441,8 +516,8 @@ export default function ProfileDetails({ store, setErrorInfo }) {
                                     onChange={e => onConversionSettingUpdated({...conversionSettings, insulin_type: e.target.value})}
                                 >
                                     <MenuItem selected='true' value='__default__'>Select a type...</MenuItem>
-                                    <MenuItem value='rapid-acting'>Rapid Acting (Humalog/Novolog/Novorapid)</MenuItem>
-                                    <MenuItem value='ultra-rapid'>Ultra Rapid (Fiasp)</MenuItem>
+                                    <MenuItem value={InsulinType.RAPID}>Rapid Acting (Humalog/Novolog/Novorapid)</MenuItem>
+                                    <MenuItem value={InsulinType.ULTRA_RAPID}>Ultra Rapid (Fiasp)</MenuItem>
                                 </Select>
                             </FormControl>
                         </ListItem>
@@ -458,6 +533,54 @@ export default function ProfileDetails({ store, setErrorInfo }) {
                                 />
                             </Grid>
                         </ListItem>
+                        <ListItemButton onClick={onAdvancedClicked}>
+                            <ListItemIcon>
+                                {advancedSettingsOpened ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                            </ListItemIcon>
+                            <ListItemText primary="Advanced settings" />
+                        </ListItemButton>
+                        <Collapse
+                            in={advancedSettingsOpened}
+                            timeout='auto'
+                            unmountOnExit
+                        >
+                            <List dense={true} disablePadding={true} sx={{ width: '90%'}}>
+                                <ListItem key='li-autosens-min'>
+                                    <Grid container spacing={2}>
+                                        <TextField 
+                                            label="Autosens min"
+                                            id='autosens-min'
+                                            defaultValue={conversionSettings.autosens_min}
+                                            onChange={e => onConversionSettingUpdated({...conversionSettings, autosens_min: e.target.value})}
+                                            type='number'
+                                            sx={{ m: 1, width: '35ch', }}
+                                            slotProps={{
+                                                htmlInput: {
+                                                    step: 0.1
+                                                }
+                                            }}
+                                        />
+                                    </Grid>
+                                </ListItem>
+                                <ListItem key='li-autosens-max'>
+                                    <Grid container spacing={2}>
+                                        <TextField 
+                                            label="Autosens max"
+                                            id='autosens-max'
+                                            defaultValue={conversionSettings.autosens_max}
+                                            onChange={e => onConversionSettingUpdated({...conversionSettings, autosens_max: e.target.value})}
+                                            type='number'
+                                            sx={{ m: 1, width: '35ch', }}
+                                            slotProps={{
+                                                htmlInput: {
+                                                    step: 0.1
+                                                }
+                                            }}
+                                        />
+                                    </Grid>
+                                </ListItem>
+                            </List>
+                        </Collapse>
                     </List>
 
                 </Box>

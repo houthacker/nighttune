@@ -33,11 +33,13 @@ import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 
 import store, { STORE_EVENT_TYPES } from './utils/localStore';
+import ProfileConversion from './components/ProfileConversion';
 
 // The steps to successfully queue an autotune job
 const steps = [
   { name: 'ns_instance', display_name: 'Nightscout instance' }, 
   { name: 'profile_details', display_name: 'Profile details' }, 
+  { name: 'profile_conversion', display_name: 'Profile conversion' },
   { name: 'autotune_job_status', display_name: 'Autotune job status' }
 ];
 
@@ -57,6 +59,10 @@ function getStepContent(step, store, preventNext, errorInfo, setErrorInfo) {
         setErrorInfo={setErrorInfo}
       />;
     case 2:
+      return <ProfileConversion
+        store={store}
+      />
+    case 3:
       return <AutotuneJobStatus />;  
     default:
       throw new Error(`Unknown step index '${step}'`)   ;
@@ -263,6 +269,11 @@ export default function App(props) {
                   key={step.name}
                 >
                   <StepLabel
+                    error={errorInfo.isError && step.name === steps[errorInfo.errorStep].name}
+                    optional={errorInfo.isError  && step.name === steps[errorInfo.errorStep].name 
+                      ? <Typography variant='caption' color='error'>{errorInfo.errorText}</Typography> 
+                      : undefined
+                    }
                     sx={{ '.MuiStepLabel-labelContainer': { maxWidth: '70px' } }}
                   >
                     {step.display_name}
