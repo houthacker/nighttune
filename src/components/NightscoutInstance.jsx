@@ -56,12 +56,15 @@ export function InfoText() {
  */
 export function NightscoutInstance({ store, preventNext }) {
     let nightscout = store.getSnapshot();
+    const [url, setUrl] = React.useState(nightscout.url);
+    const [urlError, setUrlError] = React.useState(false);
+    const [token, setToken] = React.useState(nightscout.access_token);
 
     // With initial values, disable preventNext by validating url.
     let prevent = true;
-    if (nightscout.url) {
+    if (url) {
         try {
-            new URL(nightscout.url);
+            new URL(url);
             prevent = false;
         } catch {
             prevent = true;
@@ -72,9 +75,7 @@ export function NightscoutInstance({ store, preventNext }) {
         preventNext(prevent);
     })
 
-    const [url, setUrl] = React.useState(nightscout.url);
-    const [urlError, setUrlError] = React.useState(false);
-    const [token, setToken] = React.useState(nightscout.access_token);
+    
 
     const handleUrlBlur = (event) => {
         setUrl(event.target.value);

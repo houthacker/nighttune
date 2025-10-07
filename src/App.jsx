@@ -47,12 +47,15 @@ const steps = [
  * @param {object} store The app data store.
  * @throws Error if the step is unknown.
  */
-function getStepContent(step, store, preventNext) {
+function getStepContent(step, store, preventNext, errorInfo, setErrorInfo) {
   switch (step) {
     case 0:
       return <NightscoutInstance store={store} preventNext={preventNext} />;
     case 1:
-      return <ProfileDetails store={store} />;
+      return <ProfileDetails 
+        store={store} 
+        setErrorInfo={setErrorInfo}
+      />;
     case 2:
       return <AutotuneJobStatus />;  
     default:
@@ -65,6 +68,11 @@ export default function App(props) {
   const [preventNext, setPreventNext] = React.useState(true);
   const [alertOpen, setAlertOpen] = React.useState(false);
   const [activeStep, setActiveStep] = React.useState(0);
+  const [errorInfo, setErrorInfo] = React.useState({
+    isError: false,
+    errorText: '',
+    errorStep: -1,
+  });
 
   // Read data from local storage into ns store if it is not initialized yet.
   store.init();
@@ -197,7 +205,15 @@ export default function App(props) {
                     sx={{ ':first-of-type': { pl: 0 }, ':last-of-type': { pr: 0} }}
                     key={step.name}
                   >
-                    <StepLabel>{step.display_name}</StepLabel>
+                    <StepLabel
+                      error={errorInfo.isError && step.name === steps[errorInfo.errorStep].name}
+                      optional={errorInfo.isError  && step.name === steps[errorInfo.errorStep].name 
+                        ? <Typography variant='caption' color='error'>{errorInfo.errorText}</Typography> 
+                        : undefined
+                      }
+                    >
+                      {step.display_name}
+                    </StepLabel>
                   </Step>
                 ))}
               </Stepper>
@@ -255,7 +271,7 @@ export default function App(props) {
               ))}
             </Stepper>
             <React.Fragment>
-              {getStepContent(activeStep, store, setPreventNext)}
+              {getStepContent(activeStep, store, setPreventNext, errorInfo, setErrorInfo)}
               <Box
                 sx={[
                   {

@@ -10,7 +10,7 @@ const FormGrid = styled(Grid)(() => ({
     flexDirection: 'column',
 }));
 
-async function loadProfiles({ store }) {
+async function loadProfiles({ store, setErrorInfo }) {
     let snapshot = store.getSnapshot();
     if (snapshot.url) {
         let url = new URL("api/v1/profile.json", snapshot.url);
@@ -26,14 +26,38 @@ async function loadProfiles({ store }) {
         }
 
         // Retrieve the profile
-        let response = await fetch(url);
-        let data = await response.json();
+        try {
+            let response = await fetch(url);
 
-        return data[0];
+            if (response.ok) {
+                let data = await response.json();
+                setErrorInfo({
+                    isError: false,
+                    errorStep: -1,
+                    errorText: undefined,
+                });
+                return data[0];
+            } else {
+                console.error("Error response: ", response);
+                setErrorInfo({
+                    isError: true,
+                    errorStep: 0,
+                    errorText: `HTTP error ${response.status}: ${response.statusText}`,
+                });
+                return undefined;
+            }
+        } catch (error) {
+            console.error("Network request failed: ", error);
+            setErrorInfo({
+                isError: true,
+                errorStep: 0,
+                errorText: 'Network error',
+            });
+        }
     }
 
     console.warn('Cannot load profiles: Nightscout URL has not been set.');
-    return {};
+    return undefined;
 }
 
 export function InfoText() {
@@ -157,7 +181,7 @@ export function InfoText() {
     );
 }
 
-export default function ProfileDetails({ store }) {
+export default function ProfileDetails({ store, setErrorInfo }) {
     const snapshot = store.getSnapshot();
     const [isLoaded, setLoaded] = React.useState(false);
     const [profiles, setProfiles] = React.useState({store: {}});
@@ -189,7 +213,7 @@ export default function ProfileDetails({ store }) {
 
     React.useEffect(() => {
         async function fetchData() {
-            setStates(await loadProfiles({ store }));
+            setStates(await loadProfiles({ store, setErrorInfo }));
         }
 
         // Load only once per Nightscout URL, except when the user
@@ -197,7 +221,7 @@ export default function ProfileDetails({ store }) {
         if (isLoaded === false) {
             fetchData();
         }
-    }, [store, isLoaded]);
+    }, [store, isLoaded, setErrorInfo]);
 
     const onProfileSelected = (event) => {
         let newSettings = {...conversionSettings, profile_name: event.target.value, profile_data: profiles.store[event.target.value]};
