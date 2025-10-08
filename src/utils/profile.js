@@ -1,6 +1,10 @@
 import { timeParse } from 'd3-time-format';
 import { InsulinType } from './constants';
 
+/** @import { Store } from '../utils/localStore' */
+/** @import {ErrorInfo} from '../App' */
+
+
 function normalize_ns_timed_element(element) {
     let time = {...element}
     if(time.timeAsSeconds === undefined) {
@@ -154,4 +158,62 @@ export function convert_ns_profile(ns_profile, min_5m_carbimpact = 8.0, autosens
     }
 
     return sorted_profile;
+}
+
+/**
+ * 
+ * @param {Store} store - Persistent storage for the current client.
+ * @param {function(ErrorInfo): void} setErrorInfo - A function to update error information.
+ * @returns 
+ */
+export async function fetchNightscoutProfiles(store, setErrorInfo) {
+    const encoder = new TextEncoder();
+
+    let snapshot = store.getSnapshot();
+    if (snapshot.url) {
+        let url = new URL("api/v1/profile.json", snapshot.url);
+
+        if (snapshot.access_token) {
+            const data = encoder.encode(snapshot.access_token);
+            const hash_buffer = await crypto.subtle.digest('SHA-1', data);
+            const hash_array = Array.from(new Uint8Array(hash_buffer));
+            url.searchParams.append('token', hash_array
+                .map((b) => b.toString(16).padStart(2, "0"))
+                .join("")
+            );
+        }
+
+        // Retrieve the profile
+        try {
+            let response = await fetch(url);
+
+            if (response.ok) {
+                let data = await response.json();
+                setErrorInfo({
+                    isError: false,
+                    errorStep: -1,
+                    errorText: undefined,
+                });
+                return data[0];
+            } else {
+                console.error("Error response: ", response);
+                setErrorInfo({
+                    isError: true,
+                    errorStep: 0,
+                    errorText: `HTTP error ${response.status}: ${response.statusText}`,
+                });
+                return undefined;
+            }
+        } catch (error) {
+            console.error("Network request failed: ", error);
+            setErrorInfo({
+                isError: true,
+                errorStep: 0,
+                errorText: 'Network error',
+            });
+        }
+    }
+
+    console.warn('Cannot load profiles: Nightscout URL has not been set.');
+    return undefined;
 }

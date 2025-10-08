@@ -3,70 +3,8 @@ import React from 'react';
 import { Cached, CheckBox, ExpandLess as ExpandLessIcon, ExpandMore as ExpandMoreIcon, Newspaper, WarningAmber as WarningAmberIcon } from '@mui/icons-material';
 import { Box, Button, CircularProgress, Collapse, Divider, Fade, FormControl, FormControlLabel, FormGroup, Grid, InputAdornment, InputLabel, List, ListItem, ListItemButton, ListItemIcon, ListItemText, MenuItem, Select, TextField, Tooltip, Typography } from '@mui/material';
 import FormGrid from './FormGrid';
-import { InsulinType } from '../utils/constants';
-
-const encoder = new TextEncoder();
-
-const INITIAL_CONVERSION_SETTINGS = {
-        min_5m_carbimpact: 8.0,
-        pump_basal_increment: 0.01,
-        autotune_days: 7,
-        uam_as_basal: false,
-        insulin_type: '__default__',
-        email_address: '',
-        autosens_min: 0.7,
-        autosens_max: 1.2,
-};
-
-async function loadProfiles({ store, setErrorInfo }) {
-    let snapshot = store.getSnapshot();
-    if (snapshot.url) {
-        let url = new URL("api/v1/profile.json", snapshot.url);
-
-        if (snapshot.access_token) {
-            const data = encoder.encode(snapshot.access_token);
-            const hash_buffer = await crypto.subtle.digest('SHA-1', data);
-            const hash_array = Array.from(new Uint8Array(hash_buffer));
-            url.searchParams.append('token', hash_array
-                .map((b) => b.toString(16).padStart(2, "0"))
-                .join("")
-            );
-        }
-
-        // Retrieve the profile
-        try {
-            let response = await fetch(url);
-
-            if (response.ok) {
-                let data = await response.json();
-                setErrorInfo({
-                    isError: false,
-                    errorStep: -1,
-                    errorText: undefined,
-                });
-                return data[0];
-            } else {
-                console.error("Error response: ", response);
-                setErrorInfo({
-                    isError: true,
-                    errorStep: 0,
-                    errorText: `HTTP error ${response.status}: ${response.statusText}`,
-                });
-                return undefined;
-            }
-        } catch (error) {
-            console.error("Network request failed: ", error);
-            setErrorInfo({
-                isError: true,
-                errorStep: 0,
-                errorText: 'Network error',
-            });
-        }
-    }
-
-    console.warn('Cannot load profiles: Nightscout URL has not been set.');
-    return undefined;
-}
+import { InsulinType, INITIAL_CONVERSION_SETTINGS } from '../utils/constants';
+import { fetchNightscoutProfiles } from '../utils/profile';
 
 export function InfoText() {
     const [advancedSettingsOpened, openAdvancedSettings] = React.useState(false);
@@ -201,6 +139,9 @@ export function InfoText() {
                             and how many jobs are queued. <br />
                             If you don't want to watch this site for that long, leave your email address here and you'll
                             receive the results there once the job has finished.<br /><br />
+                            <em>Please note that you'll get a verification email first if your email address hasn't between
+                            verified yet. Autotune will be run once you click the verification link.</em>
+                            <br /><br />
                             
                             If you don't like to leave you email address here, you can always return at 
                             a later time after submitting the job and inspect the results then.
@@ -273,7 +214,7 @@ export function InfoText() {
 }
 
 export default function ProfileDetails({ store, setErrorInfo, preventNext }) {
-    const snapshot = store.getSnapshot();
+    const snapshot = React.useSyncExternalStore(store.subscribe, store.getSnapshot);
     const [advancedSettingsOpened, openAdvancedSettings] = React.useState(false);
     const [isLoaded, setLoaded] = React.useState(false);
     const [profiles, setProfiles] = React.useState({store: {}});
@@ -281,14 +222,7 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }) {
     const [selectedProfile, setSelectedProfile] = React.useState('__default__');
     const [profileNames, setProfileNames] = React.useState([]);
     const [conversionSettings, setConversionSettings] = React.useState({
-        min_5m_carbimpact: 8.0,
-        pump_basal_increment: 0.01,
-        autotune_days: 7,
-        uam_as_basal: false,
-        insulin_type: '__default__',
-        email_address: '',
-        autosens_min: 0.7,
-        autosens_max: 1.2,
+        ...INITIAL_CONVERSION_SETTINGS,
         ... snapshot.conversion_settings
     });
 
@@ -325,7 +259,7 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }) {
         preventNext(selectedProfile === '__default__' || conversionSettings.insulin_type === '__default__' || invalidFields.length > 0);
     })
 
-    const setStates = async (data) => {
+    const setStates = React.useCallback(async (data) => {
         if (data) {
             setProfiles(data);
             setProfileNames([...Object.keys(data.store)].reverse());
@@ -337,11 +271,11 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }) {
 
             setLoaded(true);
         }
-    };
+    }, [snapshot.conversion_settings.profile_name]);
 
     React.useEffect(() => {
         async function fetchData() {
-            setStates(await loadProfiles({ store, setErrorInfo }));
+            setStates(await fetchNightscoutProfiles(store, setErrorInfo));
         }
 
         // Load only once per Nightscout URL, except when the user
@@ -349,7 +283,7 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }) {
         if (isLoaded === false) {
             fetchData();
         }
-    }, [store, isLoaded, setErrorInfo]);
+    }, [store, isLoaded, setErrorInfo, setStates]);
 
     const onAdvancedClicked = () => {
         openAdvancedSettings(!advancedSettingsOpened);
@@ -376,7 +310,7 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }) {
         setProfileNames([]);
 
         // Set states to newly fetched data.
-        setStates(await loadProfiles({ store }));
+        setStates(await fetchNightscoutProfiles({ store }));
     };
 
     const onConversionSettingUpdated = (update, validator) => {
@@ -388,8 +322,6 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }) {
         let valid = validator === undefined || validator();
         if (valid) {
             store.setConversionSettings({...newSettings});
-        } else {
-            console.warn('Not storing incomplete or invalid update: ', update);
         }
     };
     

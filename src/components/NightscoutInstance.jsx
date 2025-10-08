@@ -4,6 +4,8 @@ import { Divider, Grid, FormLabel, List, ListItem, ListItemText, Link, OutlinedI
 import FormGrid from './FormGrid';
 import { STORE_EVENT_TYPES } from '../utils/localStore';
 
+/** @import { Store } from '../utils/localStore */
+
 
 export function InfoText() {
     return ( 
@@ -49,13 +51,13 @@ export function InfoText() {
 
 /**
  * 
- * @param {object} store - The Nightscout storage data.
+ * @param {Store} store - The Nightscout storage data.
  */
 export function NightscoutInstance({ store, preventNext }) {
-    let nightscout = store.getSnapshot();
-    const [url, setUrl] = React.useState(nightscout.url);
+    const snapshot = React.useSyncExternalStore(store.subscribe, store.getSnapshot);
+    const [url, setUrl] = React.useState(snapshot.url);
     const [urlError, setUrlError] = React.useState(false);
-    const [token, setToken] = React.useState(nightscout.access_token);
+    const [token, setToken] = React.useState(snapshot.access_token);
 
     // With initial values, disable preventNext by validating url.
     let prevent = true;
