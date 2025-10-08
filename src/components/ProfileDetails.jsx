@@ -308,6 +308,11 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }) {
         setSelectedProfile('__default__');
         setProfileNames([]);
 
+        // And, to prevent inconsistend stored data: remove the converted profile from storage.
+        let newSettings = {...conversionSettings, oaps_profile_data: {}};
+        setConversionSettings({...newSettings});
+        store.setConversionSettings({...newSettings});
+
         // Set states to newly fetched data.
         setStates(await fetchNightscoutProfiles({ store }));
     };
