@@ -1,9 +1,9 @@
 import React from 'react';
 import { Alert, AlertTitle, CircularProgress, Fade, Grid, Typography } from '@mui/material';
 import FormGrid from './FormGrid';
-import { convert_ns_profile as convertProfile } from '../utils/profileConverter';
+import { convert_ns_profile as convertProfile } from '../utils/profile';
 
-/** @import { Snapshot, Store } from '../utils/localStore' */
+/** @import { Store } from '../utils/localStore' */
 /** @import { Component } from 'react' */
 
 /**
@@ -12,16 +12,33 @@ import { convert_ns_profile as convertProfile } from '../utils/profileConverter'
  * @returns {Component} 
  */
 export default function ProfileConversion({ store }) {
-    const snapshot = store.getSnapshot();
-    const [settings, setSettings] = React.useState(snapshot.conversion_settings);
+    const snapshot = React.useSyncExternalStore(store.subscribe, store.getSnapshot);
+    const [oapsProfile, setOapsProfile] = React.useState(undefined);
     const [isConverting, setIsConverting] = React.useState(false);
+
+    React.useEffect(() => {
+        if (Object.keys(snapshot.conversion_settings.profile_data).length > 0) {
+            setIsConverting(true);
+            let convertedProfile = convertProfile(
+                snapshot.conversion_settings.profile_data,
+                snapshot.conversion_settings.min_5m_carbimpact,
+                snapshot.conversion_settings.autosens_min,
+                snapshot.conversion_settings.autosens_max,
+                snapshot.conversion_settings.insulin_type
+            );
+            
+            setOapsProfile(convertedProfile);
+            store.setOpenAPSProfile(convertedProfile);
+            setIsConverting(false);
+        }
+    }, [ store, snapshot ]);
 
     return (
         <>
             <Fade
                 in={isConverting === true}
                 style={{
-                    transitionDelay: isConverting ? '800ms' : '0ms',
+                    transitionDelay: isConverting ? '500ms' : '0ms',
                 }}
                 unmountOnExit
             >
@@ -42,7 +59,7 @@ export default function ProfileConversion({ store }) {
                 </Grid>
             </Fade>
             <Fade
-                in={Object.keys(settings.profile_data).length === 0}
+                in={Object.keys(snapshot.conversion_settings.profile_data).length === 0}
                 style={{
                     transitionDelay: '0ms',
                 }}
@@ -57,6 +74,26 @@ export default function ProfileConversion({ store }) {
                     <Alert severity='error' color='error'>
                         <AlertTitle>Profile</AlertTitle>
                         No Nightscout profile loaded. Please go to the previous page to select a Nightscout profile.
+                    </Alert>
+                </Grid>
+            </Fade>
+            <Fade
+                in={oapsProfile !== undefined}
+                style={{
+                    transitionDelay: '0ms',
+                }}
+                unmountOnExit
+            >
+                <Grid
+                    container
+                    spacing={3}
+                    direction='column'
+                    alignItems='center'
+                >
+                    <Alert severity='info'>
+                        <AlertTitle>Conversion</AlertTitle>
+                        Your profile has successfully been converted. Please choose the ISF and CR to use
+                        and continue to the next step if you're satisfied.
                     </Alert>
                 </Grid>
             </Fade>

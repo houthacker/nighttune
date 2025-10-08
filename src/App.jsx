@@ -44,6 +44,13 @@ const steps = [
 ];
 
 /**
+ * @typedef {Object} ErrorInfo
+ * @property {boolean} isError - If there is a current error.
+ * @property {string} errorText - The error description.
+ * @property {number} errorStep - The step at which the error occurred.
+ */
+
+/**
  * Gets the UI element for the given step name.
  * @param {number} step The index of the step to get the content of.
  * @param {object} store The app data store.
