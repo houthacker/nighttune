@@ -19,6 +19,10 @@ const INITIAL_STORE = {
 }
 
 /**
+ * @typedef {function(): void} VoidFn0
+ */
+
+/**
  * @typedef {object} ConversionSettings
  * @property {string} profile_name - The Nightscout profile name.
  * @property {number} min_5m_carb_impact - The minimum carb decay per 5 minutes.
@@ -44,6 +48,18 @@ function emitChange(event_type) {
     }
 }
 
+
+/**
+ * @typedef {object} Store
+ * @property {function(string): void} setUrl - Set the Nightscout URL.
+ * @property {function(string): void} setToken - Set the optional Nightscout access token.
+ * @property {function(ConversionSettings): void} setConversionSettings - Set the profile conversion settings.
+ * @property {function(): void} init - Initialize the store by loading data from localStorage 
+ *  or filling it with defaults if there is no prior data.
+ * @property {function(): void} clear - Clear all store contents.
+ * @property {function(VoidFn0): void} subscribe - Subscribe the listener which will be called when the store changes.
+ * @property {function(): Snapshot} getSnapshot - Get a store snapshot.
+ */
 export default {
 
     /**
