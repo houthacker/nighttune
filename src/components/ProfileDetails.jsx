@@ -7,6 +7,17 @@ import { InsulinType } from '../utils/constants';
 
 const encoder = new TextEncoder();
 
+const INITIAL_CONVERSION_SETTINGS = {
+        min_5m_carbimpact: 8.0,
+        pump_basal_increment: 0.01,
+        autotune_days: 7,
+        uam_as_basal: false,
+        insulin_type: '__default__',
+        email_address: '',
+        autosens_min: 0.7,
+        autosens_max: 1.2,
+};
+
 async function loadProfiles({ store, setErrorInfo }) {
     let snapshot = store.getSnapshot();
     if (snapshot.url) {
@@ -261,7 +272,7 @@ export function InfoText() {
     );
 }
 
-export default function ProfileDetails({ store, setErrorInfo }) {
+export default function ProfileDetails({ store, setErrorInfo, preventNext }) {
     const snapshot = store.getSnapshot();
     const [advancedSettingsOpened, openAdvancedSettings] = React.useState(false);
     const [isLoaded, setLoaded] = React.useState(false);
@@ -280,6 +291,39 @@ export default function ProfileDetails({ store, setErrorInfo }) {
         autosens_max: 1.2,
         ... snapshot.conversion_settings
     });
+
+    // Validation
+    const [invalidFields, setInvalidFields] = React.useState([]);
+    const validations = {
+        insulin_type: (event) => {
+            return () => { 
+                if (Object.values(InsulinType).includes(event.target.value)) {
+                    setInvalidFields(invalidFields.filter(field => field !== 'insulin_type'));
+                    return true;
+                } else {
+                    setInvalidFields([...invalidFields, 'insulin_type']);
+                }
+
+                return false;
+            }
+        },
+        email_address: (event) => {
+            return () => { 
+                if (!event.target.value || event.target.validity.valid) {
+                    setInvalidFields(invalidFields.filter(field => field !== 'email_address'));
+                    return true;
+                } else {
+                    setInvalidFields([...invalidFields, 'email_address']);
+                }
+
+                return false;
+            }
+        }
+    };
+    
+    React.useEffect(() => {
+        preventNext(selectedProfile === '__default__' || conversionSettings.insulin_type === '__default__' || invalidFields.length > 0);
+    })
 
     const setStates = async (data) => {
         if (data) {
@@ -335,11 +379,18 @@ export default function ProfileDetails({ store, setErrorInfo }) {
         setStates(await loadProfiles({ store }));
     };
 
-    const onConversionSettingUpdated = (update) => {
-        console.log('update: ', update);
+    const onConversionSettingUpdated = (update, validator) => {
         let newSettings = {...conversionSettings, ...update};
         setConversionSettings({...newSettings});
-        store.setConversionSettings({...newSettings});
+
+        // Only store updates once they're valid. 
+        // Current state must always reflect value, regardless of validity.
+        let valid = validator === undefined || validator();
+        if (valid) {
+            store.setConversionSettings({...newSettings});
+        } else {
+            console.warn('Not storing incomplete or invalid update: ', update);
+        }
     };
     
     return (
@@ -521,13 +572,13 @@ export default function ProfileDetails({ store, setErrorInfo }) {
                         </ListItem>
                         <ListItem key='li-insulin-type' divider={true}>
                             <FormControl sx={{ m: 1, minWidth: 200 }} size='small'>
-                                <InputLabel id='lbl-insulin-type'>Insulin type</InputLabel>
+                                <InputLabel id='lbl-insulin-type' error={invalidFields.includes('insulin_type')}> Insulin type</InputLabel>
                                 <Select
                                     labelId='lbl-insulin-type'
                                     id='insulin-type'
                                     required
                                     value={conversionSettings.insulin_type}
-                                    onChange={e => onConversionSettingUpdated({insulin_type: e.target.value})}
+                                    onChange={e => onConversionSettingUpdated({insulin_type: e.target.value}, validations.insulin_type(e))}
                                 >
                                     <MenuItem selected='true' value='__default__'>Select a type...</MenuItem>
                                     <MenuItem value={InsulinType.RAPID}>Rapid Acting (Humalog/Novolog/Novorapid)</MenuItem>
@@ -541,7 +592,6 @@ export default function ProfileDetails({ store, setErrorInfo }) {
                                     id='uam-as-basal' 
                                     type='checkbox' 
                                     defaultChecked={true}
-                                    
                                     onChange={e => onConversionSettingUpdated({uam_as_basal: e.target.checked})}
                                     style={{
                                         marginLeft: '10px'
@@ -563,8 +613,10 @@ export default function ProfileDetails({ store, setErrorInfo }) {
                                 <TextField 
                                     label="Email address"
                                     id='email-address'
+                                    error={invalidFields.includes('email_address')}
+                                    helperText={invalidFields.includes('email_address') ? 'Enter a valid email address' : ''}
                                     defaultValue={conversionSettings.email_address}
-                                    onChange={e => onConversionSettingUpdated({email_address: e.target.value})}
+                                    onChange={e => onConversionSettingUpdated({email_address: e.target.value}, validations.email_address(e))}
                                     type='email'
                                     sx={{ m: 1, width: '35ch' }}
                                 />
