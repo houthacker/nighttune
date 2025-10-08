@@ -57,6 +57,7 @@ function getStepContent(step, store, preventNext, errorInfo, setErrorInfo) {
       return <ProfileDetails 
         store={store} 
         setErrorInfo={setErrorInfo}
+        preventNext={preventNext}
       />;
     case 2:
       return <ProfileConversion
