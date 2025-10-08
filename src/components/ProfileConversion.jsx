@@ -1,7 +1,7 @@
 import React from 'react';
 import { Alert, AlertTitle, CircularProgress, Fade, Grid, Typography } from '@mui/material';
 import FormGrid from './FormGrid';
-import { convert_ns_profile as convertProfile } from '../utils/profile';
+import { convertNightscoutProfile as convertProfile } from '../utils/profile';
 
 /** @import { Store } from '../utils/localStore' */
 /** @import { Component } from 'react' */
