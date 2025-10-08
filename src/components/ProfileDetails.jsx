@@ -1,16 +1,11 @@
 import React from 'react';
 
-import { Cached, ExpandLess as ExpandLessIcon, ExpandMore as ExpandMoreIcon, Newspaper, WarningAmber as WarningAmberIcon } from '@mui/icons-material';
-import { Box, Button, CircularProgress, Collapse, Divider, Fade, FormControl, Grid, InputAdornment, InputLabel, List, ListItem, ListItemButton, ListItemIcon, ListItemText, MenuItem, Select, TextField, Tooltip, Typography } from '@mui/material';
-import { styled } from '@mui/material/styles';
+import { Cached, CheckBox, ExpandLess as ExpandLessIcon, ExpandMore as ExpandMoreIcon, Newspaper, WarningAmber as WarningAmberIcon } from '@mui/icons-material';
+import { Box, Button, CircularProgress, Collapse, Divider, Fade, FormControl, FormControlLabel, FormGroup, Grid, InputAdornment, InputLabel, List, ListItem, ListItemButton, ListItemIcon, ListItemText, MenuItem, Select, TextField, Tooltip, Typography } from '@mui/material';
+import FormGrid from './FormGrid';
 import { InsulinType } from '../utils/constants';
 
 const encoder = new TextEncoder();
-
-const FormGrid = styled(Grid)(() => ({
-    display: 'flex',
-    flexDirection: 'column',
-}));
 
 async function loadProfiles({ store, setErrorInfo }) {
     let snapshot = store.getSnapshot();
@@ -117,8 +112,7 @@ export function InfoText() {
                             all the blood glucose rise that would otherwise cause a <dfn><abbr>COB</abbr> (Carbs On Board)</dfn> decay.
                             <br /><br />
 
-                            <em>Note</em>&nbsp;
-                            If you use AndroisAPS in simple mode, this setting is hidden there.
+                            <em>Note:</em> If you use AndroisAPS in simple mode, this setting is hidden there.
                         </Typography>
                     }
                 />
@@ -168,6 +162,24 @@ export function InfoText() {
             </ListItem>
             <ListItem alignItems='flex-start'>
                 <ListItemText 
+                    primary="Categorize UAM as basal"
+                    slotProps={{
+                        primary: { color: 'text.primary' }
+                    }}
+                    secondary={
+                        <Typography variant='body2' sx={{ color: 'text.secondary' }} >
+                            This setting is for the users using AndroidAPS without any carbs 
+                            entered (full UAM). It will prevent (when <code>off</code>) to
+                            count sudden blood glucose rises due to UAM towards basal.<br /><br />
+                            <em>Note:</em> if you have at least one hour of carbs absorption detected
+                            during one day, then all data categorized as UAM will be categorized as basal,
+                            regardless of this setting.
+                        </Typography>
+                    }
+                />
+            </ListItem>
+            <ListItem alignItems='flex-start'>
+                <ListItemText 
                     primary="Email address"
                     slotProps={{
                         primary: { color: 'text.primary' }
@@ -205,7 +217,7 @@ export function InfoText() {
                             }}
                             secondary={
                                 <Typography variant='body2' sx={{ color: 'text.secondary' }} >
-                                    <Typography variant='body2' sx={{ color: 'red' }}>
+                                    <Typography variant='div' sx={{ color: 'red' }} >
                                         Unless you absolutely know what you're doing, leave this value at 
                                         its default of 0.7. You'll get a warning sign if the value has changed.<br /><br />
                                     </Typography>
@@ -228,7 +240,7 @@ export function InfoText() {
                             }}
                             secondary={
                                 <Typography variant='body2' sx={{ color: 'text.secondary' }} >
-                                    <Typography variant='body2' sx={{ color: 'red' }}>
+                                    <Typography variant='div' sx={{ color: 'red' }}>
                                         Unless you absolutely know what you're doing, leave this value at 
                                         its default of 1.2. You'll get a warning sign if the value has changed.<br /><br />
                                     </Typography>
@@ -261,6 +273,7 @@ export default function ProfileDetails({ store, setErrorInfo }) {
         min_5m_carbimpact: 8.0,
         pump_basal_increment: 0.01,
         autotune_days: 7,
+        uam_as_basal: false,
         insulin_type: '__default__',
         email_address: '',
         autosens_min: 0.7,
@@ -323,6 +336,7 @@ export default function ProfileDetails({ store, setErrorInfo }) {
     };
 
     const onConversionSettingUpdated = (update) => {
+        console.log('update: ', update);
         let newSettings = {...conversionSettings, ...update};
         setConversionSettings({...newSettings});
         store.setConversionSettings({...newSettings});
@@ -452,7 +466,7 @@ export default function ProfileDetails({ store, setErrorInfo }) {
                                     required
                                     type='number'
                                     defaultValue={conversionSettings.min_5m_carbimpact}
-                                    onBlur={e => onConversionSettingUpdated({...conversionSettings, min_5m_carbimpact: e.target.value})}
+                                    onBlur={e => onConversionSettingUpdated({min_5m_carbimpact: e.target.value})}
                                     sx={{ m: 1, width: '25ch' }}
                                     slotProps={{
                                         input: {
@@ -470,7 +484,7 @@ export default function ProfileDetails({ store, setErrorInfo }) {
                                     required
                                     type='number'
                                     defaultValue={conversionSettings.pump_basal_increment}
-                                    onBlur={e => onConversionSettingUpdated({...conversionSettings, pump_basal_increment: e.target.value})}
+                                    onBlur={e => onConversionSettingUpdated({pump_basal_increment: e.target.value})}
                                     sx={{ m: 1, width: '25ch' }}
                                     slotProps={{
                                         input: {
@@ -491,7 +505,7 @@ export default function ProfileDetails({ store, setErrorInfo }) {
                                     required
                                     type='number'
                                     defaultValue={conversionSettings.autotune_days}
-                                    onBlur={e => onConversionSettingUpdated({...conversionSettings, autotune_days: e.target.value})}
+                                    onBlur={e => onConversionSettingUpdated({autotune_days: e.target.value})}
                                     sx={{ m: 1, width: '25ch' }}
                                     slotProps={{
                                         input: {
@@ -513,7 +527,7 @@ export default function ProfileDetails({ store, setErrorInfo }) {
                                     id='insulin-type'
                                     required
                                     value={conversionSettings.insulin_type}
-                                    onChange={e => onConversionSettingUpdated({...conversionSettings, insulin_type: e.target.value})}
+                                    onChange={e => onConversionSettingUpdated({insulin_type: e.target.value})}
                                 >
                                     <MenuItem selected='true' value='__default__'>Select a type...</MenuItem>
                                     <MenuItem value={InsulinType.RAPID}>Rapid Acting (Humalog/Novolog/Novorapid)</MenuItem>
@@ -521,13 +535,36 @@ export default function ProfileDetails({ store, setErrorInfo }) {
                                 </Select>
                             </FormControl>
                         </ListItem>
+                        <ListItem key='li-uam-as-basal' divider={true}>
+                            <Grid container spacing={2}>
+                                <input 
+                                    id='uam-as-basal' 
+                                    type='checkbox' 
+                                    defaultChecked={true}
+                                    
+                                    onChange={e => onConversionSettingUpdated({uam_as_basal: e.target.checked})}
+                                    style={{
+                                        marginLeft: '10px'
+                                    }}
+                                />
+                                <InputLabel 
+                                    id='lbl-uam-as-basal' 
+                                    htmlFor='uam-as-basal'
+                                    sx={{
+                                        marginTop: '5px',
+                                        color: 'text.primary'
+                                    }}
+                                >Categorize UAM as basal</InputLabel>
+                            </Grid>
+
+                        </ListItem>
                         <ListItem key='li-email-address' divider={true}>
                             <Grid container spacing={2}>
                                 <TextField 
                                     label="Email address"
                                     id='email-address'
                                     defaultValue={conversionSettings.email_address}
-                                    onChange={e => onConversionSettingUpdated({...conversionSettings, email_address: e.target.value})}
+                                    onChange={e => onConversionSettingUpdated({email_address: e.target.value})}
                                     type='email'
                                     sx={{ m: 1, width: '35ch' }}
                                 />
@@ -551,7 +588,7 @@ export default function ProfileDetails({ store, setErrorInfo }) {
                                             label="Autosens min"
                                             id='autosens-min'
                                             defaultValue={conversionSettings.autosens_min}
-                                            onChange={e => onConversionSettingUpdated({...conversionSettings, autosens_min: parseFloat(e.target.value)})}
+                                            onChange={e => onConversionSettingUpdated({autosens_min: parseFloat(e.target.value)})}
                                             type='number'
                                             sx={{ m: 1, width: '35ch', }}
                                             slotProps={{
@@ -578,7 +615,7 @@ export default function ProfileDetails({ store, setErrorInfo }) {
                                             label="Autosens max"
                                             id='autosens-max'
                                             defaultValue={conversionSettings.autosens_max}
-                                            onChange={e => onConversionSettingUpdated({...conversionSettings, autosens_max: parseFloat(e.target.value)})}
+                                            onChange={e => onConversionSettingUpdated({autosens_max: parseFloat(e.target.value)})}
                                             type='number'
                                             sx={{ m: 1, width: '35ch', }}
                                             slotProps={{

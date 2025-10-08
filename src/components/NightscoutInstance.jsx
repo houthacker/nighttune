@@ -1,12 +1,9 @@
 import React from 'react';
 import { Divider, Grid, FormLabel, List, ListItem, ListItemText, Link, OutlinedInput, Typography, TextField } from '@mui/material';
-import { styled } from '@mui/material/styles';
+
+import FormGrid from './FormGrid';
 import { STORE_EVENT_TYPES } from '../utils/localStore';
 
-const FormGrid = styled(Grid)(() => ({
-    display: 'flex',
-    flexDirection: 'column',
-}));
 
 export function InfoText() {
     return ( 
