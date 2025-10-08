@@ -255,6 +255,7 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }) {
         }
     };
     
+    // Remove the 'Next >' button if the form is initially invalid.
     React.useEffect(() => {
         preventNext(selectedProfile === '__default__' || conversionSettings.insulin_type === '__default__' || invalidFields.length > 0);
     })
@@ -295,8 +296,6 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }) {
         setSelectedProfile(event.target.value);
         setConversionSettings({...newSettings});
         store.setConversionSettings({...newSettings});
-        
-        console.log(profiles.store[event.target.value]);
     };
 
     const onReloadButtonClicked = async () => {
