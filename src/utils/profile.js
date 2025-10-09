@@ -1,7 +1,7 @@
 import { timeParse } from 'd3-time-format';
 import { InsulinType } from './constants';
 
-/** @import { Store } from '../utils/localStore' */
+/** @import { Snapshot, Store } from '../utils/localStore' */
 /** @import {ErrorInfo} from '../App' */
 
 
@@ -225,4 +225,114 @@ export async function fetchNightscoutProfiles(store, setErrorInfo) {
 
     console.warn('Cannot load profiles: Nightscout URL has not been set.');
     return undefined;
+}
+
+/**
+ * Creates a series object that is accepted by a `ChartContainer` consisting of 
+ * the Carb Ratio settings from Nightscout profile plotted against the weighted average.
+ * 
+ * @param {Snapshot} snapshot - The store snapshot containing the CR data.
+ * @param {function(float): void} setMaxYValue - A setter function for the maximum y-axis value of the containing graph.
+ */
+export function createCrChartSeries(snapshot, setMaxYValue) {
+    
+    function* mapSeriesToDiscreteHours(elements) {
+        let maxTimeAsSeconds = 86400;
+        for (const [idx, element] of elements.entries()) {
+            let nextTimeAsSeconds = elements.length === idx + 1 ? maxTimeAsSeconds : elements[idx + 1].timeAsSeconds;
+            let elementHours = (nextTimeAsSeconds - element.timeAsSeconds) / 3600;
+            
+            for(let i=0; i < elementHours; i++) {
+                yield element.value;
+            }
+        }
+    }
+
+    
+    let series = [];
+    if (snapshot.conversion_settings.oaps_profile_data.carb_ratio) {
+
+        /**
+         * settings.profile_data.carbratio[].time/value
+         */
+        let data = [...mapSeriesToDiscreteHours(snapshot.conversion_settings.profile_data.carbratio)];
+
+        // Set the maximum y-axis value to 110%
+        setMaxYValue(Math.max(...data) * 1.10);
+        series.push({
+            id: 'cr',
+            type: 'bar',
+            yAxisId: 'carb_ratio',
+            label: 'Carb Ratio',
+            color: 'green',
+            data: data,
+            highlightScope: { highlight: 'item' }
+        });
+        series.push({
+            id: 'cr_weighted',
+            type: 'line',
+            yAxisId: 'carb_weighted_avg',
+            label: 'Carb Weighted avg',
+            color: 'red',
+            data: data.map(() => snapshot.conversion_settings.oaps_profile_data.carb_ratio),
+            highlightScope: { highlight: 'item' }
+        });
+    }
+
+    return series;
+}
+
+/**
+ * Creates a series object that is accepted by a `ChartContainer` consisting of 
+ * the Insulin Sensitivity Factor settings from Nightscout profile plotted against the weighted average.
+ * 
+ * @param {Snapshot} snapshot - The store snapshot containing the ISF data.
+ * @param {function(float): void} setMaxYValue - A setter function for the maximum y-axis value of the containing graph.
+ */
+export function createISFChartSeries(snapshot, setMaxYValue) {
+    
+    function* mapSeriesToDiscreteHours(elements) {
+        let maxTimeAsSeconds = 86400;
+        for (const [idx, element] of elements.entries()) {
+            let nextTimeAsSeconds = elements.length === idx + 1 ? maxTimeAsSeconds : elements[idx + 1].timeAsSeconds;
+            let elementHours = (nextTimeAsSeconds - element.timeAsSeconds) / 3600;
+            
+            for(let i=0; i < elementHours; i++) {
+                yield element.value;
+            }
+        }
+    }
+
+    
+    let series = [];
+    if (snapshot.conversion_settings.oaps_profile_data.isfProfile) {
+
+        /**
+         * settings.profile_data.sens[].time/value
+         */
+        let data = [...mapSeriesToDiscreteHours(snapshot.conversion_settings.profile_data.sens)];
+
+        // Set the maximum y-axis value to 110%
+        setMaxYValue(Math.max(...data) * 1.10);
+        series.push({
+            id: 'isf',
+            type: 'bar',
+            yAxisId: 'isf',
+            label: 'Insulin Sensitivity Factor',
+            color: 'blue',
+            data: data,
+            highlightScope: { highlight: 'item' }
+        });
+        series.push({
+            id: 'isf_weighted',
+            type: 'line',
+            yAxisId: 'isf_weighted_avg',
+            label: 'ISF Weighted avg',
+            color: 'darkorange',
+            data: data.map(() => snapshot.conversion_settings.oaps_profile_data.isfProfile.sensitivities[0].sensitivity),
+            highlightScope: { highlight: 'item' }
+        });
+    }
+
+    return series;
 }
