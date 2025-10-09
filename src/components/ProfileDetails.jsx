@@ -1,66 +1,18 @@
-import { Cached } from '@mui/icons-material';
-import { Box, Button, CircularProgress, Divider, Fade, FormControl, Grid, InputAdornment, InputLabel, Link, List, ListItem, ListItemText, MenuItem, OutlinedInput, Select, TextField, Tooltip, Typography } from '@mui/material';
-import { styled } from '@mui/material/styles';
 import React from 'react';
 
-const encoder = new TextEncoder();
-
-const FormGrid = styled(Grid)(() => ({
-    display: 'flex',
-    flexDirection: 'column',
-}));
-
-async function loadProfiles({ store, setErrorInfo }) {
-    let snapshot = store.getSnapshot();
-    if (snapshot.url) {
-        let url = new URL("api/v1/profile.json", snapshot.url);
-
-        if (snapshot.access_token) {
-            const data = encoder.encode(snapshot.access_token);
-            const hash_buffer = await crypto.subtle.digest('SHA-1', data);
-            const hash_array = Array.from(new Uint8Array(hash_buffer));
-            url.searchParams.append('token', hash_array
-                .map((b) => b.toString(16).padStart(2, "0"))
-                .join("")
-            );
-        }
-
-        // Retrieve the profile
-        try {
-            let response = await fetch(url);
-
-            if (response.ok) {
-                let data = await response.json();
-                setErrorInfo({
-                    isError: false,
-                    errorStep: -1,
-                    errorText: undefined,
-                });
-                return data[0];
-            } else {
-                console.error("Error response: ", response);
-                setErrorInfo({
-                    isError: true,
-                    errorStep: 0,
-                    errorText: `HTTP error ${response.status}: ${response.statusText}`,
-                });
-                return undefined;
-            }
-        } catch (error) {
-            console.error("Network request failed: ", error);
-            setErrorInfo({
-                isError: true,
-                errorStep: 0,
-                errorText: 'Network error',
-            });
-        }
-    }
-
-    console.warn('Cannot load profiles: Nightscout URL has not been set.');
-    return undefined;
-}
+import { Cached, CheckBox, ExpandLess as ExpandLessIcon, ExpandMore as ExpandMoreIcon, Newspaper, WarningAmber as WarningAmberIcon } from '@mui/icons-material';
+import { Box, Button, CircularProgress, Collapse, Divider, Fade, FormControl, FormControlLabel, FormGroup, Grid, InputAdornment, InputLabel, List, ListItem, ListItemButton, ListItemIcon, ListItemText, MenuItem, Select, TextField, Tooltip, Typography } from '@mui/material';
+import FormGrid from './FormGrid';
+import { InsulinType, INITIAL_CONVERSION_SETTINGS } from '../utils/constants';
+import { fetchNightscoutProfiles } from '../utils/profile';
 
 export function InfoText() {
+    const [advancedSettingsOpened, openAdvancedSettings] = React.useState(false);
+
+    const onAdvancedClicked = () => {
+        openAdvancedSettings(!advancedSettingsOpened);
+    };
+
     return (
         <List sx={{ bgcolor: 'background.paper' }}>
             <ListItem alignItems="flex-start">
@@ -109,8 +61,7 @@ export function InfoText() {
                             all the blood glucose rise that would otherwise cause a <dfn><abbr>COB</abbr> (Carbs On Board)</dfn> decay.
                             <br /><br />
 
-                            <em>Note</em>&nbsp;
-                            If you use AndroisAPS in simple mode, this setting is hidden there.
+                            <em>Note:</em> If you use AndroisAPS in simple mode, this setting is hidden there.
                         </Typography>
                     }
                 />
@@ -160,6 +111,24 @@ export function InfoText() {
             </ListItem>
             <ListItem alignItems='flex-start'>
                 <ListItemText 
+                    primary="Categorize UAM as basal"
+                    slotProps={{
+                        primary: { color: 'text.primary' }
+                    }}
+                    secondary={
+                        <Typography variant='body2' sx={{ color: 'text.secondary' }} >
+                            This setting is for the users using AndroidAPS without any carbs 
+                            entered (full UAM). It will prevent (when <code>off</code>) to
+                            count sudden blood glucose rises due to UAM towards basal.<br /><br />
+                            <em>Note:</em> if you have at least one hour of carbs absorption detected
+                            during one day, then all data categorized as UAM will be categorized as basal,
+                            regardless of this setting.
+                        </Typography>
+                    }
+                />
+            </ListItem>
+            <ListItem alignItems='flex-start'>
+                <ListItemText 
                     primary="Email address"
                     slotProps={{
                         primary: { color: 'text.primary' }
@@ -170,6 +139,9 @@ export function InfoText() {
                             and how many jobs are queued. <br />
                             If you don't want to watch this site for that long, leave your email address here and you'll
                             receive the results there once the job has finished.<br /><br />
+                            <em>Please note that you'll get a verification email first if your email address hasn't between
+                            verified yet. Autotune will be run once you click the verification link.</em>
+                            <br /><br />
                             
                             If you don't like to leave you email address here, you can always return at 
                             a later time after submitting the job and inspect the results then.
@@ -177,27 +149,118 @@ export function InfoText() {
                     }
                 />
             </ListItem>
+            <ListItemButton onClick={onAdvancedClicked}>
+                <ListItemIcon>
+                    {advancedSettingsOpened ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                </ListItemIcon>
+                <ListItemText primary="Advanced settings" />
+            </ListItemButton>
+            <Collapse
+                in={advancedSettingsOpened}
+                timeout='auto'
+                unmountOnExit
+            >
+                <List dense={true} disablePadding={true} sx={{ width: '90%'}}>
+                    <ListItem alignItems='flex-start'>
+                        <ListItemText
+                            primary="Autosens min"
+                            slotProps={{
+                                primary: { color: 'text.primary'}
+                            }}
+                            secondary={
+                                <Typography variant='body2' sx={{ color: 'text.secondary' }} >
+                                    <Typography variant='div' sx={{ color: 'red' }} >
+                                        Unless you absolutely know what you're doing, leave this value at 
+                                        its default of 0.7. You'll get a warning sign if the value has changed.<br /><br />
+                                    </Typography>
+                                    Autosens is an algorithm that adjusts your basal and ISF based
+                                    on the sensitivity or resistance it calculates. This calculation
+                                    is ran off the more sensitive of a combination of 24 and 8 hours 
+                                    worth of data.<br />
+                                    <code>autosens_min</code> is used to limit the algorithm so it
+                                    doesn't use a too low percentage.
+                                </Typography>
+                            }
+                        >
+                        </ListItemText>
+                    </ListItem>
+                    <ListItem alignItems='flex-start'>
+                        <ListItemText
+                            primary="Autosens max"
+                            slotProps={{
+                                primary: { color: 'text.primary'}
+                            }}
+                            secondary={
+                                <Typography variant='body2' sx={{ color: 'text.secondary' }} >
+                                    <Typography variant='div' sx={{ color: 'red' }}>
+                                        Unless you absolutely know what you're doing, leave this value at 
+                                        its default of 1.2. You'll get a warning sign if the value has changed.<br /><br />
+                                    </Typography>
+                                    Autosens is an algorithm that adjusts your basal and ISF based
+                                    on the sensitivity or resistance it calculates. This calculation
+                                    is ran off the more sensitive of a combination of 24 and 8 hours 
+                                    worth of data.<br />
+                                    <code>autosens_max</code> is used to limit the algorithm so it
+                                    doesn't use a too high percentage.
+                                </Typography>
+                            }
+                        >
+                        </ListItemText>
+                    </ListItem>
+                </List>
+            </Collapse>
         </List>
     );
 }
 
-export default function ProfileDetails({ store, setErrorInfo }) {
-    const snapshot = store.getSnapshot();
+export default function ProfileDetails({ store, setErrorInfo, preventNext }) {
+    const snapshot = React.useSyncExternalStore(store.subscribe, store.getSnapshot);
+    const [advancedSettingsOpened, openAdvancedSettings] = React.useState(false);
     const [isLoaded, setLoaded] = React.useState(false);
     const [profiles, setProfiles] = React.useState({store: {}});
     const [defaultProfile, setDefaultProfile] = React.useState('');
     const [selectedProfile, setSelectedProfile] = React.useState('__default__');
     const [profileNames, setProfileNames] = React.useState([]);
     const [conversionSettings, setConversionSettings] = React.useState({
-        min_5m_carbimpact: 8.0,
-        pump_basal_increment: 0.01,
-        autotune_days: 7,
-        insulin_type: '__default__',
-        email_address: '',
+        ...INITIAL_CONVERSION_SETTINGS,
         ... snapshot.conversion_settings
     });
 
-    const setStates = async (data) => {
+    // Validation
+    const [invalidFields, setInvalidFields] = React.useState([]);
+    const validations = {
+        insulin_type: (event) => {
+            return () => { 
+                if (Object.values(InsulinType).includes(event.target.value)) {
+                    setInvalidFields(invalidFields.filter(field => field !== 'insulin_type'));
+                    return true;
+                } else {
+                    setInvalidFields([...invalidFields, 'insulin_type']);
+                }
+
+                return false;
+            }
+        },
+        email_address: (event) => {
+            return () => { 
+                if (!event.target.value || event.target.validity.valid) {
+                    setInvalidFields(invalidFields.filter(field => field !== 'email_address'));
+                    return true;
+                } else {
+                    setInvalidFields([...invalidFields, 'email_address']);
+                }
+
+                return false;
+            }
+        }
+    };
+    
+    // Remove the 'Next >' button if the form is initially invalid.
+    React.useEffect(() => {
+        preventNext(selectedProfile === '__default__' || conversionSettings.insulin_type === '__default__' || invalidFields.length > 0);
+    })
+
+    const setStates = React.useCallback(async (data) => {
         if (data) {
             setProfiles(data);
             setProfileNames([...Object.keys(data.store)].reverse());
@@ -209,11 +272,11 @@ export default function ProfileDetails({ store, setErrorInfo }) {
 
             setLoaded(true);
         }
-    };
+    }, [snapshot.conversion_settings.profile_name]);
 
     React.useEffect(() => {
         async function fetchData() {
-            setStates(await loadProfiles({ store, setErrorInfo }));
+            setStates(await fetchNightscoutProfiles(store, setErrorInfo));
         }
 
         // Load only once per Nightscout URL, except when the user
@@ -221,7 +284,11 @@ export default function ProfileDetails({ store, setErrorInfo }) {
         if (isLoaded === false) {
             fetchData();
         }
-    }, [store, isLoaded, setErrorInfo]);
+    }, [store, isLoaded, setErrorInfo, setStates]);
+
+    const onAdvancedClicked = () => {
+        openAdvancedSettings(!advancedSettingsOpened);
+    };
 
     const onProfileSelected = (event) => {
         let newSettings = {...conversionSettings, profile_name: event.target.value, profile_data: profiles.store[event.target.value]};
@@ -229,8 +296,6 @@ export default function ProfileDetails({ store, setErrorInfo }) {
         setSelectedProfile(event.target.value);
         setConversionSettings({...newSettings});
         store.setConversionSettings({...newSettings});
-        
-        console.log(profiles.store[event.target.value]);
     };
 
     const onReloadButtonClicked = async () => {
@@ -243,14 +308,25 @@ export default function ProfileDetails({ store, setErrorInfo }) {
         setSelectedProfile('__default__');
         setProfileNames([]);
 
-        // Set states to newly fetched data.
-        setStates(await loadProfiles({ store }));
-    };
-
-    const onConversionSettingUpdated = (update) => {
-        let newSettings = {...conversionSettings, ...update};
+        // And, to prevent inconsistend stored data: remove the converted profile from storage.
+        let newSettings = {...conversionSettings, oaps_profile_data: {}};
         setConversionSettings({...newSettings});
         store.setConversionSettings({...newSettings});
+
+        // Set states to newly fetched data.
+        setStates(await fetchNightscoutProfiles({ store }));
+    };
+
+    const onConversionSettingUpdated = (update, validator) => {
+        let newSettings = {...conversionSettings, ...update};
+        setConversionSettings({...newSettings});
+
+        // Only store updates once they're valid. 
+        // Current state must always reflect value, regardless of validity.
+        let valid = validator === undefined || validator();
+        if (valid) {
+            store.setConversionSettings({...newSettings});
+        }
     };
     
     return (
@@ -377,7 +453,7 @@ export default function ProfileDetails({ store, setErrorInfo }) {
                                     required
                                     type='number'
                                     defaultValue={conversionSettings.min_5m_carbimpact}
-                                    onBlur={e => onConversionSettingUpdated({...conversionSettings, min_5m_carbimpact: e.target.value})}
+                                    onBlur={e => onConversionSettingUpdated({min_5m_carbimpact: e.target.value})}
                                     sx={{ m: 1, width: '25ch' }}
                                     slotProps={{
                                         input: {
@@ -395,7 +471,7 @@ export default function ProfileDetails({ store, setErrorInfo }) {
                                     required
                                     type='number'
                                     defaultValue={conversionSettings.pump_basal_increment}
-                                    onBlur={e => onConversionSettingUpdated({...conversionSettings, pump_basal_increment: e.target.value})}
+                                    onBlur={e => onConversionSettingUpdated({pump_basal_increment: e.target.value})}
                                     sx={{ m: 1, width: '25ch' }}
                                     slotProps={{
                                         input: {
@@ -416,7 +492,7 @@ export default function ProfileDetails({ store, setErrorInfo }) {
                                     required
                                     type='number'
                                     defaultValue={conversionSettings.autotune_days}
-                                    onBlur={e => onConversionSettingUpdated({...conversionSettings, autotune_days: e.target.value})}
+                                    onBlur={e => onConversionSettingUpdated({autotune_days: e.target.value})}
                                     sx={{ m: 1, width: '25ch' }}
                                     slotProps={{
                                         input: {
@@ -432,32 +508,124 @@ export default function ProfileDetails({ store, setErrorInfo }) {
                         </ListItem>
                         <ListItem key='li-insulin-type' divider={true}>
                             <FormControl sx={{ m: 1, minWidth: 200 }} size='small'>
-                                <InputLabel id='lbl-insulin-type'>Insulin type</InputLabel>
+                                <InputLabel id='lbl-insulin-type' error={invalidFields.includes('insulin_type')}> Insulin type</InputLabel>
                                 <Select
                                     labelId='lbl-insulin-type'
                                     id='insulin-type'
                                     required
                                     value={conversionSettings.insulin_type}
-                                    onChange={e => onConversionSettingUpdated({...conversionSettings, insulin_type: e.target.value})}
+                                    onChange={e => onConversionSettingUpdated({insulin_type: e.target.value}, validations.insulin_type(e))}
                                 >
                                     <MenuItem selected='true' value='__default__'>Select a type...</MenuItem>
-                                    <MenuItem value='rapid-acting'>Rapid Acting (Humalog/Novolog/Novorapid)</MenuItem>
-                                    <MenuItem value='ultra-rapid'>Ultra Rapid (Fiasp)</MenuItem>
+                                    <MenuItem value={InsulinType.RAPID}>Rapid Acting (Humalog/Novolog/Novorapid)</MenuItem>
+                                    <MenuItem value={InsulinType.ULTRA_RAPID}>Ultra Rapid (Fiasp)</MenuItem>
                                 </Select>
                             </FormControl>
+                        </ListItem>
+                        <ListItem key='li-uam-as-basal' divider={true}>
+                            <Grid container spacing={2}>
+                                <input 
+                                    id='uam-as-basal' 
+                                    type='checkbox' 
+                                    defaultChecked={true}
+                                    onChange={e => onConversionSettingUpdated({uam_as_basal: e.target.checked})}
+                                    style={{
+                                        marginLeft: '10px'
+                                    }}
+                                />
+                                <InputLabel 
+                                    id='lbl-uam-as-basal' 
+                                    htmlFor='uam-as-basal'
+                                    sx={{
+                                        marginTop: '5px',
+                                        color: 'text.primary'
+                                    }}
+                                >Categorize UAM as basal</InputLabel>
+                            </Grid>
+
                         </ListItem>
                         <ListItem key='li-email-address' divider={true}>
                             <Grid container spacing={2}>
                                 <TextField 
                                     label="Email address"
                                     id='email-address'
+                                    error={invalidFields.includes('email_address')}
+                                    helperText={invalidFields.includes('email_address') ? 'Enter a valid email address' : ''}
                                     defaultValue={conversionSettings.email_address}
-                                    onChange={e => onConversionSettingUpdated({...conversionSettings, email_address: e.target.value})}
+                                    onChange={e => onConversionSettingUpdated({email_address: e.target.value}, validations.email_address(e))}
                                     type='email'
                                     sx={{ m: 1, width: '35ch' }}
                                 />
                             </Grid>
                         </ListItem>
+                        <ListItemButton onClick={onAdvancedClicked}>
+                            <ListItemIcon>
+                                {advancedSettingsOpened ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                            </ListItemIcon>
+                            <ListItemText primary="Advanced settings" />
+                        </ListItemButton>
+                        <Collapse
+                            in={advancedSettingsOpened}
+                            timeout='auto'
+                            unmountOnExit
+                        >
+                            <List dense={true} disablePadding={true} sx={{ width: '90%'}}>
+                                <ListItem key='li-autosens-min'>
+                                    <Grid container spacing={2}>
+                                        <TextField 
+                                            label="Autosens min"
+                                            id='autosens-min'
+                                            defaultValue={conversionSettings.autosens_min}
+                                            onChange={e => onConversionSettingUpdated({autosens_min: parseFloat(e.target.value)})}
+                                            type='number'
+                                            sx={{ m: 1, width: '35ch', }}
+                                            slotProps={{
+                                                input: {
+                                                    startAdornment: conversionSettings.autosens_min !== 0.7 
+                                                        ? <Tooltip 
+                                                                placement='auto'
+                                                                title='Warning: autosens_min has a non-default value.'
+                                                          ><InputAdornment position='start' >
+                                                            <WarningAmberIcon />
+                                                          </InputAdornment></Tooltip> 
+                                                        : ''
+                                                },
+                                                htmlInput: {
+                                                    step: 0.1
+                                                },
+                                            }}
+                                        />
+                                    </Grid>
+                                </ListItem>
+                                <ListItem key='li-autosens-max'>
+                                    <Grid container spacing={2}>
+                                        <TextField 
+                                            label="Autosens max"
+                                            id='autosens-max'
+                                            defaultValue={conversionSettings.autosens_max}
+                                            onChange={e => onConversionSettingUpdated({autosens_max: parseFloat(e.target.value)})}
+                                            type='number'
+                                            sx={{ m: 1, width: '35ch', }}
+                                            slotProps={{
+                                                input: {
+                                                    startAdornment: conversionSettings.autosens_max !== 1.2 
+                                                        ? <Tooltip 
+                                                                placement='auto'
+                                                                title='Warning: autosens_max has a non-default value.'
+                                                          ><InputAdornment position='start' >
+                                                            <WarningAmberIcon />
+                                                          </InputAdornment></Tooltip> 
+                                                        : ''
+                                                },
+                                                htmlInput: {
+                                                    step: 0.1
+                                                }
+                                            }}
+                                        />
+                                    </Grid>
+                                </ListItem>
+                            </List>
+                        </Collapse>
                     </List>
 
                 </Box>

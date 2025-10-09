@@ -8,6 +8,7 @@ export const STORE_EVENT_TYPES = {
     SET_URL: 'set_url',
     SET_TOKEN: 'set_token',
     SET_CONVERSION_SETTINGS: 'set_conversion_settings',
+    SET_OAPS_PROFILE: 'set_oaps_profile',
     CLEAR: 'clear',
 };
 
@@ -19,6 +20,10 @@ const INITIAL_STORE = {
 }
 
 /**
+ * @typedef {function(): void} VoidFn0
+ */
+
+/**
  * @typedef {object} ConversionSettings
  * @property {string} profile_name - The Nightscout profile name.
  * @property {number} min_5m_carb_impact - The minimum carb decay per 5 minutes.
@@ -27,6 +32,7 @@ const INITIAL_STORE = {
  * @property {number} autotune_days - The amount of days for autotune to use. Max 30.
  * @property {string} email_address - The optional e-mailadress to send the results to.
  * @property {object} profile_data - The Nightscout profile data.
+ * @property {object} oaps_profile_data - The OpenAPS profile data.
  */
 
 /**
@@ -44,6 +50,19 @@ function emitChange(event_type) {
     }
 }
 
+
+/**
+ * @typedef {object} Store
+ * @property {function(string): void} setUrl - Set the Nightscout URL.
+ * @property {function(string): void} setToken - Set the optional Nightscout access token.
+ * @property {function(ConversionSettings): void} setConversionSettings - Set the profile conversion settings.
+ * @property {function(object): void} setOpenAPSProfile - Set the OpenAPS profile.
+ * @property {function(): void} init - Initialize the store by loading data from localStorage 
+ *  or filling it with defaults if there is no prior data.
+ * @property {function(): void} clear - Clear all store contents.
+ * @property {function(VoidFn0): void} subscribe - Subscribe the listener which will be called when the store changes.
+ * @property {function(): Snapshot} getSnapshot - Get a store snapshot.
+ */
 export default {
 
     /**
@@ -81,6 +100,15 @@ export default {
 
         localStorage.setItem(NS_STORAGE_KEY, JSON.stringify({...snapshot}));
         emitChange(STORE_EVENT_TYPES.SET_CONVERSION_SETTINGS);
+    },
+
+    /**
+     * Set the OpenAPS profile that resulted from converting the Nightscout profile.
+     * @param {object} oaps_profile The OpenAPS profile
+     */
+    setOpenAPSProfile(oaps_profile) {
+        let snapshot = this.getSnapshot();
+        this.setConversionSettings({...snapshot.conversion_settings, oaps_profile_data: oaps_profile});
     },
 
     init() {
