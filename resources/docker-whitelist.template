@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+
+CHAIN='docker-whitelist'
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --start)
+      ACTION='start'
+      shift
+      ;;
+    --stop)
+      ACTION='stop'
+      shift
+      ;;
+    --add)
+      ACTION='add'
+      shift
+      ;;
+    --ip)
+      IP_ADDRESS=$2
+      shift
+      shift
+      ;;
+   --port)
+     PORT=$2
+     shift
+     shift
+     ;;
+    *)
+      ACTION='start'
+      shift
+      ;;
+  esac
+done
+
+if [ ${ACTION} = 'start' ]; then
+  iptables -L ${CHAIN} > /dev/null 2>&1
+
+  if [ "$?" -eq 1 ]; then
+    iptables -N ${CHAIN}
+    iptables -A ${CHAIN} -j DROP
+  fi
+
+  iptables -C DOCKER-USER -j ${CHAIN} > /dev/null 2>&1
+
+  if [ $? -eq 1 ]; then
+    iptables -I DOCKER-USER -j ${CHAIN}
+  fi
+
+  iptables -L ${CHAIN}
+  iptables -L DOCKER-USER
+elif [ ${ACTION} = 'stop' ]; then
+  rule_number=$(iptables -L DOCKER-USER --line-numbers|grep ${CHAIN}|awk '{print $1}')
+
+  if [ ! -z ${rule_number} ]; then
+    iptables -D DOCKER-USER ${rule_number}
+  fi
+
+  rule_count=$(iptables -L docker-whitelist --line-numbers|tail -n 1|awk '{print $1}')
+  if [[ $? -eq 0 ]] && [[ ! -z ${rule_count} ]]; then
+    for ((i=${rule_count}; i>0; i--)); do
+      iptables -D ${CHAIN} $i
+    done
+
+    iptables --delete-chain ${CHAIN}
+  fi
+elif [[ ${ACTION} = 'add' ]]; then
+  if [[ -z ${IP_ADDRESS:-x} ]] || [[ -x ${PORT:-x} ]]; then
+    echo "Missing --ip or --port parameters. Exiting"
+    exit 1
+  fi
+
+  iptables -I ${CHAIN} 1 -p tcp -m conntrack --ctorigsrc ${IP_ADDRESS} --ctorigdstport ${PORT} -j RETURN
+
+fi

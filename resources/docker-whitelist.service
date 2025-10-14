@@ -1,0 +1,15 @@
+[Unit]
+Description=Docker container access whitelist
+After=docker.service
+ReloadPropagatedFrom=docker.service
+BindTo=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/docker-whitelist --start
+ExecStop=/usr/bin/docker-whitelist --stop
+RemainAfterExit=true
+StandardOutput=journal
+
+[Install]
+WantedBy=multi-user.target
