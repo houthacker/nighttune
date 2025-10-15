@@ -1,10 +1,10 @@
 import React from 'react';
 
-import { Cached, CheckBox, ExpandLess as ExpandLessIcon, ExpandMore as ExpandMoreIcon, Newspaper, WarningAmber as WarningAmberIcon } from '@mui/icons-material';
-import { Box, Button, CircularProgress, Collapse, Divider, Fade, FormControl, FormControlLabel, FormGroup, Grid, InputAdornment, InputLabel, List, ListItem, ListItemButton, ListItemIcon, ListItemText, MenuItem, Select, TextField, Tooltip, Typography } from '@mui/material';
-import FormGrid from './FormGrid';
-import { InsulinType, INITIAL_CONVERSION_SETTINGS } from '../utils/constants';
+import { Cached, ExpandLess as ExpandLessIcon, ExpandMore as ExpandMoreIcon, WarningAmber as WarningAmberIcon } from '@mui/icons-material';
+import { Box, Button, CircularProgress, Collapse, Divider, Fade, FormControl, Grid, InputAdornment, InputLabel, List, ListItem, ListItemButton, ListItemIcon, ListItemText, MenuItem, Select, TextField, Tooltip, Typography } from '@mui/material';
+import { INITIAL_CONVERSION_SETTINGS, InsulinType } from '../utils/constants';
 import { fetchNightscoutProfiles } from '../utils/profile';
+import FormGrid from './FormGrid';
 
 export function InfoText() {
     const [advancedSettingsOpened, openAdvancedSettings] = React.useState(false);
