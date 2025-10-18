@@ -1,7 +1,8 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-    distDir: 'build',
+    output: 'export',
+    distDir: './build',
 }
 
 export default nextConfig

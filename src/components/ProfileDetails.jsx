@@ -314,7 +314,7 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }) {
         store.setConversionSettings({...newSettings});
 
         // Set states to newly fetched data.
-        setStates(await fetchNightscoutProfiles({ store }));
+        setStates(await fetchNightscoutProfiles(store, setErrorInfo));
     };
 
     const onConversionSettingUpdated = (update, validator) => {

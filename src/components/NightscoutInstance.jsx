@@ -1,5 +1,6 @@
 import React from 'react';
 import { Divider, Grid, FormLabel, List, ListItem, ListItemText, Link, OutlinedInput, Typography, TextField } from '@mui/material';
+import Turnstile, { useTurnstile } from 'react-turnstile';
 
 import FormGrid from './FormGrid';
 import { STORE_EVENT_TYPES } from '../utils/localStore';
@@ -45,6 +46,21 @@ export function InfoText() {
                         }
                     />
                 </ListItem>
+                <Divider variant="inset" component="li" />
+                <ListItem alignItems='flex-start'>
+                    <ListItemText 
+                        primary="Bot protection"
+                        slotProps={{
+                            primary: { color: 'text.primary' }
+                        }}
+                        secondary={
+                            <Typography variant='body2' sx={{ color: 'text.secondary' }} >
+                                To prevent bots from messing around with this site, you must complete a challenge: click
+                                the checkbox, indicating that you are human. That's it.
+                            </Typography>
+                        }
+                    />
+                </ListItem>
             </List>
     );
 }
@@ -56,12 +72,13 @@ export function InfoText() {
 export function NightscoutInstance({ store, preventNext }) {
     const snapshot = React.useSyncExternalStore(store.subscribe, store.getSnapshot);
     const [url, setUrl] = React.useState(snapshot.url);
+    const [turnstileValid, setTurnstileValid] = React.useState(false);
     const [urlError, setUrlError] = React.useState(false);
     const [token, setToken] = React.useState(snapshot.access_token);
 
     // With initial values, disable preventNext by validating url.
     let prevent = true;
-    if (url) {
+    if (url && turnstileValid) {
         try {
             new URL(url);
             prevent = false;
@@ -74,7 +91,7 @@ export function NightscoutInstance({ store, preventNext }) {
         preventNext(prevent);
     })
 
-    
+    const turnstile = useTurnstile();
 
     const handleUrlBlur = (event) => {
         setUrl(event.target.value);
@@ -98,7 +115,9 @@ export function NightscoutInstance({ store, preventNext }) {
         let haveError = !(e.target.value && e.target.validity.valid);
         
         setUrlError(haveError);
-        preventNext(haveError);
+        if (haveError) {
+            preventNext(haveError);
+        }
     }
 
     // Unsubscribe from store when unmounting
@@ -123,7 +142,7 @@ export function NightscoutInstance({ store, preventNext }) {
                     error={urlError}
                     placeholder="https://my.nightscout.url"
                     required
-                    value={url}
+                    defaultValue={url}
                     size="small"
                     helperText={urlError ? 'Invalid URL' : ''}
                     variant='outlined'
@@ -137,9 +156,30 @@ export function NightscoutInstance({ store, preventNext }) {
                     type="password"
                     onBlur={handleTokenBlur}
                     placeholder="Put your Nightscout access token here"
-                    value={token}
+                    defaultValue={token}
                     onChange={(e) => setToken(e.target.value)}
                     size="small"
+                />
+            </FormGrid>
+            <Divider sx={{ width: '100%' }} />
+            <FormGrid size={{ xs: 21, md: 6}}>
+                <Turnstile
+                    sitekey="0x4AAAAAAB7G6hc6NTeoJJwk"
+                    onVerify={(token) => {
+                        fetch(process.env.NEXT_PUBLIC_BACKEND_URL, {
+                            method: 'POST',
+                            body: JSON.stringify({ token }),
+                        }).then((response) => {
+                            if (!response.ok) {
+                                turnstile.reset();
+                            }
+                            setTurnstileValid(response.ok === true);
+                        });
+                    }}
+                    size='normal'
+                    refreshExpired='auto'
+                    appearance='interaction-only'
+                    theme='auto'
                 />
             </FormGrid>
         </Grid>

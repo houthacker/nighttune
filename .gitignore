@@ -27,3 +27,4 @@ dist-ssr
 build
 .next
 next-env.d.ts
+.env*.local
