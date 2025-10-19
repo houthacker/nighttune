@@ -1,5 +1,5 @@
 import { timeParse } from 'd3-time-format';
-import { InsulinType } from './constants';
+import { InsulinType } from './constants.js';
 
 /** @import { Snapshot, Store } from '../utils/localStore' */
 /** @import {ErrorInfo} from '../App' */
