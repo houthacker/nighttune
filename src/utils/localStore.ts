@@ -30,8 +30,9 @@ export interface Profiles {
 
 export interface ConversionSettings {
     profile_name?: string;
-    min_5m_carb_impact?: number;
-    basal_increment?: number;
+    min_5m_carbimpact?: number;
+    pump_basal_increment?: number;
+    uam_as_basal?: boolean;
     insulin_type?: InsulinType;
     autotune_days?: number;
     email_address?: string;

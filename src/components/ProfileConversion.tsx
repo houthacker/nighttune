@@ -115,7 +115,7 @@ export default function ProfileConversion({ store }: { store: Store }): ReactEle
             setIsConverting(true);
             let convertedProfile = convertNightscoutProfile(
                 snapshot.conversion_settings.profile_data!,
-                snapshot.conversion_settings.min_5m_carb_impact,
+                snapshot.conversion_settings.min_5m_carbimpact,
                 snapshot.conversion_settings.autosens_min,
                 snapshot.conversion_settings.autosens_max,
                 snapshot.conversion_settings.insulin_type

@@ -160,7 +160,7 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
             <Divider sx={{ width: '100%' }} />
             <FormGrid size={{ xs: 21, md: 6}}>
                 <Turnstile
-                    sitekey={process.env.NEXT_PUBLIS_TURNSTILE_SITEKEY!}
+                    sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITEKEY!}
                     onVerify={(token) => {
                         fetch(process.env.NEXT_PUBLIC_BACKEND_URL!, {
                             method: 'POST',

@@ -10,7 +10,8 @@ export interface ErrorInfo {
 
 export enum InsulinType {
     RapidActing = 'rapid-acting',
-    UltraRapid = 'ultra-rapid'
+    UltraRapid = 'ultra-rapid',
+    Unknown = '__default__',
 }
 
 export const INITIAL_CONVERSION_SETTINGS = {
