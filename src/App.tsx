@@ -1,4 +1,3 @@
-// src/App.js
 import * as React from 'react';
 import {
   Typography,
@@ -35,6 +34,9 @@ import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import store, { STORE_EVENT_TYPES } from './utils/localStore';
 import ProfileConversion from './components/ProfileConversion';
 
+import type { Dispatch, SetStateAction } from 'react';
+import type { Store } from './utils/localStore';
+
 // The steps to successfully queue an autotune job
 const steps = [
   { name: 'ns_instance', display_name: 'Nightscout instance' }, 
@@ -56,7 +58,7 @@ const steps = [
  * @param {object} store The app data store.
  * @throws Error if the step is unknown.
  */
-function getStepContent(step, store, preventNext, errorInfo, setErrorInfo) {
+function getStepContent(step: number, store: Store, preventNext: Dispatch<SetStateAction<boolean>>, errorInfo: any, setErrorInfo: (_: any) => void) {
   switch (step) {
     case 0:
       return <NightscoutInstance store={store} preventNext={preventNext} />;
@@ -77,7 +79,7 @@ function getStepContent(step, store, preventNext, errorInfo, setErrorInfo) {
   }
 }
 
-export default function App(props) {
+export default function App(props: any) {
   // Error state shared with child components
   const [preventNext, setPreventNext] = React.useState(true);
   const [alertOpen, setAlertOpen] = React.useState(false);
@@ -106,7 +108,7 @@ export default function App(props) {
   const handleResetConfirmed = () => {
     setAlertOpen(false);
     store.clear();
-    location.reload(false);
+    location.reload();
   }
   return (
     <AppTheme {...props}>

@@ -1,15 +1,20 @@
 import { timeParse } from 'd3-time-format';
-import { InsulinType } from './constants.js';
+import { InsulinType } from './constants';
 
-/** @import { Snapshot, Store } from '../utils/localStore' */
+import type { BarSeriesType, LineSeriesType } from '@mui/x-charts';
+import type { ErrorInfo, TimedValue, NormalizedTimedValue, NightscoutProfileDef, OAPSProfile, NightscoutProfile, BgTimeslot, ScheduleSlot } from './constants';
+import type { Snapshot, Store } from './localStore.js';
 /** @import {ErrorInfo} from '../App' */
 
 
-function normalizeNightscoutTimedElement(element) {
+function normalizeNightscoutTimedElement(element: TimedValue): NormalizedTimedValue {
     let time = {...element}
     if(time.timeAsSeconds === undefined) {
         let tm = timeParse('%H:%M')(time.time);
-        time.timeAsSeconds = tm.getHours() * 3600 + tm.getMinutes() * 60
+
+        if (tm) {
+            time.timeAsSeconds = tm.getHours() * 3600 + tm.getMinutes() * 60
+        }
     }
     if(time.time === undefined) {
         let hours = time.timeAsSeconds / 3600;
@@ -18,17 +23,13 @@ function normalizeNightscoutTimedElement(element) {
     }
 
     return {
-        ...time,
+        timeAsSeconds: time.timeAsSeconds,
+        minutes: time.timeAsSeconds / 60,
+        time: time.time,
         start: time.time + ":00",
-        minutes: time.timeAsSeconds / 60
+        value: time.value,
     }
 }
-
-/**
- * @typedef {Object} TimedValue
- * @property {number} timeAsSeconds - The time of day represented in seconds, e.g. `14400` for `04:00`.
- * @property {number} value - The value to average
- */
 
 /**
  * Calculates the weighted average of CR and ISF elements from a NS profile.
@@ -37,12 +38,12 @@ function normalizeNightscoutTimedElement(element) {
  * @param {TimedValue[]} elements The elements to calculate the weighted average of.
  * @returns {number} The weighted average.
  */
-function calculateWeightedAverage(elements) {
+function calculateWeightedAverage(elements: TimedValue[]): number {
     let maxTimeAsSeconds = 86400;
     let sum = 0;
     for (const [idx, element] of elements.entries()) {
         let nextTimeAsSeconds = elements.length === idx + 1 ? maxTimeAsSeconds : elements[idx + 1].timeAsSeconds;
-        let elementHours = (nextTimeAsSeconds - element.timeAsSeconds) / 3600;
+        let elementHours = (nextTimeAsSeconds - element.timeAsSeconds!) / 3600;
         sum += (element.value * elementHours);
     }
 
@@ -53,26 +54,41 @@ function calculateWeightedAverage(elements) {
  * Converts the given `ns_profile` to an OAPS profile, analog to the OAPS python implementation.
  * 
  * @see https://github.com/openaps/oref0/blob/v0.7.1/bin/get_profile.py
- * @param {object} ns_profile The Nightscout profile.
- * @param {number} min_5m_carbimpact The minimal carbs absorption per 5 minutes.
- * @param {number} autosens_min The multiplier for adjustments during insulin sensitivity.
- * @param {number} autosens_max The multiplier for adjustments during insulin resistance.
- * @param {InsulinType} curve The insulin type to infer how quickly it acts and decays.
- * @returns {object} The OAPS profile.
  */
-export function convertNightscoutProfile(ns_profile, min_5m_carbimpact = 8.0, autosens_min = 0.7, autosens_max = 1.2, curve = InsulinType.RAPID) {
-    let oaps_profile = {
+export function convertNightscoutProfile(
+    ns_profile: NightscoutProfileDef, 
+    min_5m_carbimpact = 8.0, 
+    autosens_min = 0.7, 
+    autosens_max = 1.2, 
+    curve = InsulinType.RapidActing): OAPSProfile {
+
+    let oaps_profile: OAPSProfile = {
         min_5m_carbimpact: min_5m_carbimpact,
         dia: ns_profile.dia,
         autosens_max: autosens_max,
         autosens_min: autosens_min,
         out_units: ns_profile.units,
         timezone: ns_profile.timezone,
-        curve: curve
+        curve: curve,
+        carb_ratio: -1,
+        basalprofile: [],
+        bg_targets: {
+            units: ns_profile.units,
+            user_preferred_units: ns_profile.units,
+            targets: [],
+        },
+        carb_ratios: {
+            first: 1,
+            units: 'grams',
+            schedule: [],
+        },
+        isfProfile: {
+            first: 1,
+            sensitivities: [],
+        }
     };
 
     // Basal profile
-    oaps_profile.basalprofile = [];
     for(const [_, basal_item] of Object.entries(ns_profile.basal)) {
         oaps_profile.basalprofile.push({
             i: oaps_profile.basalprofile.length,
@@ -82,12 +98,10 @@ export function convertNightscoutProfile(ns_profile, min_5m_carbimpact = 8.0, au
     }
 
     // BG targets
-    oaps_profile.bg_targets = {
-        units: ns_profile.units,
-        user_preferred_units: ns_profile.units,
-        targets: []
-    }
-    let targets = {};
+    let targets: {[key: string]: {
+        low: ScheduleSlot & {low: number},
+        high: { high: number }
+    } } = {};
 
     // Extract low targets
     for(const [_, low] of Object.entries(ns_profile.target_low)) {
@@ -131,15 +145,12 @@ export function convertNightscoutProfile(ns_profile, min_5m_carbimpact = 8.0, au
     // from the NS profile.
     // A snippet that uses all ISF elements, if autotune ever is going to do that,
     // can be found in the git history.
-    oaps_profile.isfProfile = {
-        first: 1,
-        sensitivities: [{
-            i: 0,
-            start: "00:00:00",
-            offset: 0,
-            sensitivity: calculateWeightedAverage(ns_profile.sens),
-        }]
-    };
+    oaps_profile.isfProfile.sensitivities.push({
+        i: 0,
+        start: "00:00:00",
+        offset: 0,
+        sensitivity: calculateWeightedAverage(ns_profile.sens),
+    });
 
     // Carb ratio(s).
     // Autotune only uses the first ISF value from the OpenAPS profile.
@@ -149,33 +160,28 @@ export function convertNightscoutProfile(ns_profile, min_5m_carbimpact = 8.0, au
     // A snippet that uses all CR elements, if autotune ever is going to do that,
     // can be found in the git history.
     oaps_profile.carb_ratio = calculateWeightedAverage(ns_profile.carbratio);
-    oaps_profile.carb_ratios = {
-        first: 1,
-        units: "grams",
-        schedule: [{
-            i: 0,
-            offset: 0,
-            ratio: oaps_profile.carb_ratio,
-            start: "00:00:00",
-        }]
-    };
+    oaps_profile.carb_ratios.schedule.push({
+        i: 0,
+        offset: 0,
+        ratio: oaps_profile.carb_ratio,
+        start: "00:00:00",
+    });
 
     // Sort profile by keys
-    let sorted_profile = {}
+    let sorted_profile: any = {}
     for(const key of Object.keys(oaps_profile).sort()) {
-        sorted_profile[key] = oaps_profile[key];
+        sorted_profile[key] = (oaps_profile as any)[key];
     }
 
-    return sorted_profile;
+    return sorted_profile as OAPSProfile;
 }
 
 /**
  * 
  * @param {Store} store - Persistent storage for the current client.
  * @param {function(ErrorInfo): void} setErrorInfo - A function to update error information.
- * @returns 
  */
-export async function fetchNightscoutProfiles(store, setErrorInfo) {
+export async function fetchNightscoutProfiles(store: Store, setErrorInfo: (errorInfo: ErrorInfo) => void): Promise<NightscoutProfile | undefined> {
     const encoder = new TextEncoder();
 
     let snapshot = store.getSnapshot();
@@ -211,7 +217,6 @@ export async function fetchNightscoutProfiles(store, setErrorInfo) {
                     errorStep: 0,
                     errorText: `HTTP error ${response.status}: ${response.statusText}`,
                 });
-                return undefined;
             }
         } catch (error) {
             console.error("Network request failed: ", error);
@@ -234,9 +239,9 @@ export async function fetchNightscoutProfiles(store, setErrorInfo) {
  * @param {Snapshot} snapshot - The store snapshot containing the CR data.
  * @param {function(float): void} setMaxYValue - A setter function for the maximum y-axis value of the containing graph.
  */
-export function createCrChartSeries(snapshot, setMaxYValue) {
+export function createCrChartSeries(snapshot: Snapshot, setMaxYValue: (value: number) => void) {
     
-    function* mapSeriesToDiscreteHours(elements) {
+    function* mapSeriesToDiscreteHours(elements: TimedValue[]) {
         let maxTimeAsSeconds = 86400;
         for (const [idx, element] of elements.entries()) {
             let nextTimeAsSeconds = elements.length === idx + 1 ? maxTimeAsSeconds : elements[idx + 1].timeAsSeconds;
@@ -249,13 +254,13 @@ export function createCrChartSeries(snapshot, setMaxYValue) {
     }
 
     
-    let series = [];
-    if (snapshot.conversion_settings.oaps_profile_data.carb_ratio) {
+    let series: Array<BarSeriesType | LineSeriesType> = [];
+    if (snapshot.conversion_settings.oaps_profile_data?.carb_ratio) {
 
         /**
          * settings.profile_data.carbratio[].time/value
          */
-        let data = [...mapSeriesToDiscreteHours(snapshot.conversion_settings.profile_data.carbratio)];
+        let data = [...mapSeriesToDiscreteHours(snapshot.conversion_settings.profile_data!.carbratio)];
 
         // Set the maximum y-axis value to 110%
         setMaxYValue(Math.max(...data) * 1.10);
@@ -274,7 +279,7 @@ export function createCrChartSeries(snapshot, setMaxYValue) {
             yAxisId: 'carb_weighted_avg',
             label: 'Carb Weighted avg',
             color: 'red',
-            data: data.map(() => snapshot.conversion_settings.oaps_profile_data.carb_ratio),
+            data: data.map(() => snapshot.conversion_settings.oaps_profile_data!.carb_ratio),
             highlightScope: { highlight: 'item' }
         });
     }
@@ -289,9 +294,9 @@ export function createCrChartSeries(snapshot, setMaxYValue) {
  * @param {Snapshot} snapshot - The store snapshot containing the ISF data.
  * @param {function(float): void} setMaxYValue - A setter function for the maximum y-axis value of the containing graph.
  */
-export function createISFChartSeries(snapshot, setMaxYValue) {
+export function createISFChartSeries(snapshot: Snapshot, setMaxYValue: (value: number) => void) {
     
-    function* mapSeriesToDiscreteHours(elements) {
+    function* mapSeriesToDiscreteHours(elements: TimedValue[]) {
         let maxTimeAsSeconds = 86400;
         for (const [idx, element] of elements.entries()) {
             let nextTimeAsSeconds = elements.length === idx + 1 ? maxTimeAsSeconds : elements[idx + 1].timeAsSeconds;
@@ -304,13 +309,13 @@ export function createISFChartSeries(snapshot, setMaxYValue) {
     }
 
     
-    let series = [];
-    if (snapshot.conversion_settings.oaps_profile_data.isfProfile) {
+    let series: Array<BarSeriesType | LineSeriesType> = [];
+    if (snapshot.conversion_settings.oaps_profile_data?.isfProfile) {
 
         /**
          * settings.profile_data.sens[].time/value
          */
-        let data = [...mapSeriesToDiscreteHours(snapshot.conversion_settings.profile_data.sens)];
+        let data = [...mapSeriesToDiscreteHours(snapshot.conversion_settings.profile_data!.sens)];
 
         // Set the maximum y-axis value to 110%
         setMaxYValue(Math.max(...data) * 1.10);
@@ -329,7 +334,7 @@ export function createISFChartSeries(snapshot, setMaxYValue) {
             yAxisId: 'isf_weighted_avg',
             label: 'ISF Weighted avg',
             color: 'darkorange',
-            data: data.map(() => snapshot.conversion_settings.oaps_profile_data.isfProfile.sensitivities[0].sensitivity),
+            data: data.map(() => snapshot.conversion_settings.oaps_profile_data!.isfProfile.sensitivities[0].sensitivity),
             highlightScope: { highlight: 'item' }
         });
     }

@@ -1,12 +1,12 @@
 import React from 'react';
-import { Divider, Grid, FormLabel, List, ListItem, ListItemText, Link, OutlinedInput, Typography, TextField } from '@mui/material';
+import { Divider, Grid, FormLabel, List, ListItem, ListItemText, Link, Typography, TextField } from '@mui/material';
 import Turnstile, { useTurnstile } from 'react-turnstile';
 
 import FormGrid from './FormGrid';
 import { STORE_EVENT_TYPES } from '../utils/localStore';
 
-/** @import { Store } from '../utils/localStore */
-
+import type { Snapshot, Store } from '../utils/localStore';
+import type { ChangeEvent, FocusEvent } from 'react';
 
 export function InfoText() {
     return ( 
@@ -65,12 +65,8 @@ export function InfoText() {
     );
 }
 
-/**
- * 
- * @param {Store} store - The Nightscout storage data.
- */
-export function NightscoutInstance({ store, preventNext }) {
-    const snapshot = React.useSyncExternalStore(store.subscribe, store.getSnapshot);
+export function NightscoutInstance({ store, preventNext }: { store: Store, preventNext: (value: boolean) => void}) {
+    const snapshot: Snapshot = React.useSyncExternalStore(store.subscribe, store.getSnapshot);
     const [url, setUrl] = React.useState(snapshot.url);
     const [turnstileValid, setTurnstileValid] = React.useState(false);
     const [urlError, setUrlError] = React.useState(false);
@@ -93,12 +89,12 @@ export function NightscoutInstance({ store, preventNext }) {
 
     const turnstile = useTurnstile();
 
-    const handleUrlBlur = (event) => {
+    const handleUrlBlur = (event: FocusEvent<HTMLInputElement>) => {
         setUrl(event.target.value);
         store.setUrl(event.target.value);
     };
 
-    const handleTokenBlur = (event) => {
+    const handleTokenBlur = (event: FocusEvent<HTMLInputElement>) => {
         setToken(event.target.value);
         store.setToken(event.target.value);
     };
@@ -110,7 +106,7 @@ export function NightscoutInstance({ store, preventNext }) {
         }
     });
 
-    const handleUrlChange = (e) => {
+    const handleUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
         setUrl(e.target.value);
         let haveError = !(e.target.value && e.target.validity.valid);
         
@@ -164,9 +160,9 @@ export function NightscoutInstance({ store, preventNext }) {
             <Divider sx={{ width: '100%' }} />
             <FormGrid size={{ xs: 21, md: 6}}>
                 <Turnstile
-                    sitekey="0x4AAAAAAB7G6hc6NTeoJJwk"
+                    sitekey={process.env.NEXT_PUBLIS_TURNSTILE_SITEKEY!}
                     onVerify={(token) => {
-                        fetch(process.env.NEXT_PUBLIC_BACKEND_URL, {
+                        fetch(process.env.NEXT_PUBLIC_BACKEND_URL!, {
                             method: 'POST',
                             body: JSON.stringify({ token }),
                         }).then((response) => {

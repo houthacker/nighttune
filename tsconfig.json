@@ -2,7 +2,6 @@
   "compilerOptions": {
     "outDir": "./dist/",
     "sourceMap": true,
-    "strictNullChecks": true,
     "module": "esnext",
     "jsx": "react-jsx",
     "target": "es5",
@@ -12,8 +11,9 @@
       "dom.iterable",
       "esnext"
     ],
+    "downlevelIteration": true,
     "skipLibCheck": true,
-    "strict": false,
+    "strict": true,
     "noEmit": true,
     "incremental": true,
     "esModuleInterop": true,
@@ -28,7 +28,8 @@
   },
   "include": [
     "./src/",
-    "dist/dev/types/**/*.ts"
+    "dist/dev/types/**/*.ts",
+    "./dist/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"
