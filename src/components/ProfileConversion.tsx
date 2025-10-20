@@ -1,11 +1,15 @@
-import React from 'react';
-import { Alert, AlertTitle, Box, Button, CircularProgress, Divider, Fade, Grid, InputAdornment, List, ListItem, ListItemText, TextField, Typography } from '@mui/material';
-import { Cached } from '@mui/icons-material';
+import { Alert, AlertTitle, Box, CircularProgress, Divider, Fade, Grid, InputAdornment, List, ListItem, ListItemText, TextField, Typography } from '@mui/material';
 import { BarPlot, ChartContainer, ChartsAxisHighlight, ChartsTooltip, ChartsXAxis, ChartsYAxis, lineElementClasses, LineHighlightPlot, LinePlot } from '@mui/x-charts';
-import { timeParse, timeFormat } from 'd3-time-format';
+import { timeFormat } from 'd3-time-format';
+import React from 'react';
 
-import FormGrid from './FormGrid';
 import { convertNightscoutProfile, createCrChartSeries, createISFChartSeries } from '../utils/profile';
+import FormGrid from './FormGrid';
+
+import type { ChangeEvent, FocusEvent, ReactElement } from 'react';
+import type { BarSeriesType, ChartsAxisData, LineSeriesType } from '@mui/x-charts';
+import type { Snapshot, Store } from '../utils/localStore';
+import { OAPSProfile } from '../utils/constants';
 
 export function InfoText() {
     return (
@@ -87,38 +91,30 @@ export function InfoText() {
     );
 };
 
-/** @import { Store } from '../utils/localStore' */
-/** @import { Component } from 'react' */
-
-/**
- * 
- * @param {Store} store - The storage interface.
- * @returns {Component} 
- */
-export default function ProfileConversion({ store }) {
-    const snapshot = React.useSyncExternalStore(store.subscribe, store.getSnapshot);
-    const [oapsProfile, setOapsProfile] = React.useState(undefined);
+export default function ProfileConversion({ store }: { store: Store }): ReactElement<any, any> {
+    const snapshot: Snapshot = React.useSyncExternalStore(store.subscribe, store.getSnapshot);
+    const [oapsProfile, setOapsProfile] = React.useState<OAPSProfile | undefined>();
     const [isConverting, setIsConverting] = React.useState(false);
     
     // CR graph state
     const [maxYAxisValueCR, setMaxYAxisValueCR] = React.useState(20);
-    const [carbRatioSeries, setCarbRatioSeries] = React.useState({});
+    const [carbRatioSeries, setCarbRatioSeries] = React.useState([] as Array<BarSeriesType | LineSeriesType>);
     const [selectedCr, setSelectedCarbRatio] = React.useState(0);
     const originalWeightedAvgCr = React.useRef(0);
 
     // ISF graph state
     const [maxYAxisValueISF, setMaxYAxisValueISF] = React.useState(20);
-    const [isfSeries, setISFSeries] = React.useState({});
+    const [isfSeries, setISFSeries] = React.useState([]  as Array<BarSeriesType | LineSeriesType>);
     const [selectedISF, setSelectedISF] = React.useState(0);
     const originalWeightedAvgISF = React.useRef(0);
     
     const timeFormatter = timeFormat('%H:%M');
 
     React.useEffect(() => {
-        if (Object.keys(snapshot.conversion_settings.profile_data).length > 0) {
+        if (Object.keys(snapshot.conversion_settings.profile_data!).length > 0) {
             setIsConverting(true);
             let convertedProfile = convertNightscoutProfile(
-                snapshot.conversion_settings.profile_data,
+                snapshot.conversion_settings.profile_data!,
                 snapshot.conversion_settings.min_5m_carbimpact,
                 snapshot.conversion_settings.autosens_min,
                 snapshot.conversion_settings.autosens_max,
@@ -145,14 +141,14 @@ export default function ProfileConversion({ store }) {
     }, [snapshot, setCarbRatioSeries, setMaxYAxisValueCR]);
 
     // CR can be selected using the graph
-    const onCRGraphClicked = (data) => {
+    const onCRGraphClicked = (data: ChartsAxisData | null) => {
         if (data) {
-            const cr = data.seriesValues.cr;
+            const cr: number = data.seriesValues.cr!;
 
             // Set selected CR in oaps profile
             let update = {...snapshot.conversion_settings};
-            update.oaps_profile_data.carb_ratio = cr;
-            update.oaps_profile_data.carb_ratios.schedule[0].ratio = cr;
+            update.oaps_profile_data!.carb_ratio = cr;
+            update.oaps_profile_data!.carb_ratios.schedule[0].ratio = cr;
 
             store.setConversionSettings(update);
             setSelectedCarbRatio(cr);
@@ -160,13 +156,13 @@ export default function ProfileConversion({ store }) {
     };
 
     // Or by entering it manually.
-    const onCRUpdated = (event) => {
+    const onCRUpdated = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const cr = parseFloat(event.target.value);
 
         // Set selected CR in oaps profile
         let update = {...snapshot.conversion_settings};
-        update.oaps_profile_data.carb_ratio = cr;
-        update.oaps_profile_data.carb_ratios.schedule[0].ratio = cr;
+        update.oaps_profile_data!.carb_ratio = cr;
+        update.oaps_profile_data!.carb_ratios.schedule[0].ratio = cr;
 
         store.setConversionSettings(update);
         setSelectedCarbRatio(cr);
@@ -178,13 +174,13 @@ export default function ProfileConversion({ store }) {
     }, [snapshot, setISFSeries, setMaxYAxisValueISF]);
 
     // ISF can be selected using the graph
-    const onISFGraphClicked = (data) => {
+    const onISFGraphClicked = (data: ChartsAxisData | null) => {
         if (data) {
-            const isf = data.seriesValues.isf;
+            const isf: number = data.seriesValues.isf!;
 
             // Set selected CR in oaps profile
             let update = {...snapshot.conversion_settings};
-            update.oaps_profile_data.isfProfile.sensitivities[0].sensitivity = isf;
+            update.oaps_profile_data!.isfProfile.sensitivities[0].sensitivity = isf;
 
             store.setConversionSettings(update);
             setSelectedISF(isf);
@@ -192,12 +188,12 @@ export default function ProfileConversion({ store }) {
     };
 
     // Or by entering it manually.
-    const onISFUpdated = (event) => {
+    const onISFUpdated = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const isf = parseFloat(event.target.value);
 
         // Set selected CR in oaps profile
         let update = {...snapshot.conversion_settings};
-        update.oaps_profile_data.isfProfile.sensitivities[0].sensitivity = isf;
+        update.oaps_profile_data!.isfProfile.sensitivities[0].sensitivity = isf;
 
         store.setConversionSettings(update);
         setSelectedISF(isf);
@@ -229,7 +225,7 @@ export default function ProfileConversion({ store }) {
                 </Grid>
             </Fade>
             <Fade
-                in={Object.keys(snapshot.conversion_settings.profile_data).length === 0}
+                in={Object.keys(snapshot.conversion_settings.profile_data!).length === 0}
                 style={{
                     transitionDelay: '0ms',
                 }}

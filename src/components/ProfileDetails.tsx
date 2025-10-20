@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { ChangeEvent } from 'react';
 
 import { Cached, ExpandLess as ExpandLessIcon, ExpandMore as ExpandMoreIcon, WarningAmber as WarningAmberIcon } from '@mui/icons-material';
 import { Box, Button, CircularProgress, Collapse, Divider, Fade, FormControl, Grid, InputAdornment, InputLabel, List, ListItem, ListItemButton, ListItemIcon, ListItemText, MenuItem, Select, TextField, Tooltip, Typography } from '@mui/material';
-import { INITIAL_CONVERSION_SETTINGS, InsulinType } from '../utils/constants';
+import { ErrorInfo, INITIAL_CONVERSION_SETTINGS, InsulinType, NightscoutProfile, NightscoutProfiles } from '../utils/constants';
 import { fetchNightscoutProfiles } from '../utils/profile';
 import FormGrid from './FormGrid';
+import { ConversionSettings, Snapshot, Store } from '../utils/localStore';
 
 export function InfoText() {
     const [advancedSettingsOpened, openAdvancedSettings] = React.useState(false);
@@ -169,7 +170,7 @@ export function InfoText() {
                             }}
                             secondary={
                                 <Typography variant='body2' sx={{ color: 'text.secondary' }} >
-                                    <Typography variant='div' sx={{ color: 'red' }} >
+                                    <Typography variant='overline' sx={{ color: 'red', lineHeight: '1em' }} >
                                         Unless you absolutely know what you're doing, leave this value at 
                                         its default of 0.7. You'll get a warning sign if the value has changed.<br /><br />
                                     </Typography>
@@ -192,7 +193,7 @@ export function InfoText() {
                             }}
                             secondary={
                                 <Typography variant='body2' sx={{ color: 'text.secondary' }} >
-                                    <Typography variant='div' sx={{ color: 'red' }}>
+                                    <Typography variant='overline' sx={{ color: 'red', lineHeight: '1em' }}>
                                         Unless you absolutely know what you're doing, leave this value at 
                                         its default of 1.2. You'll get a warning sign if the value has changed.<br /><br />
                                     </Typography>
@@ -213,25 +214,26 @@ export function InfoText() {
     );
 }
 
-export default function ProfileDetails({ store, setErrorInfo, preventNext }) {
-    const snapshot = React.useSyncExternalStore(store.subscribe, store.getSnapshot);
+export default function ProfileDetails({ store, setErrorInfo, preventNext }: 
+    { store: Store, setErrorInfo: (errorInfo: ErrorInfo) => void, preventNext: (prevent_it: boolean) => void}) {
+    const snapshot: Snapshot = React.useSyncExternalStore(store.subscribe, store.getSnapshot);
     const [advancedSettingsOpened, openAdvancedSettings] = React.useState(false);
     const [isLoaded, setLoaded] = React.useState(false);
-    const [profiles, setProfiles] = React.useState({store: {}});
+    const [profiles, setProfiles] = React.useState({store: {}} as { store: NightscoutProfiles });
     const [defaultProfile, setDefaultProfile] = React.useState('');
     const [selectedProfile, setSelectedProfile] = React.useState('__default__');
-    const [profileNames, setProfileNames] = React.useState([]);
+    const [profileNames, setProfileNames] = React.useState([] as Array<string>);
     const [conversionSettings, setConversionSettings] = React.useState({
         ...INITIAL_CONVERSION_SETTINGS,
         ... snapshot.conversion_settings
-    });
+    } as ConversionSettings);
 
     // Validation
-    const [invalidFields, setInvalidFields] = React.useState([]);
+    const [invalidFields, setInvalidFields] = React.useState([] as Array<string>);
     const validations = {
-        insulin_type: (event) => {
+        insulin_type: (event: ChangeEvent<HTMLInputElement> | Event & { target: { name: string, value: string}}) => {
             return () => { 
-                if (Object.values(InsulinType).includes(event.target.value)) {
+                if (event.target.value in InsulinType) {
                     setInvalidFields(invalidFields.filter(field => field !== 'insulin_type'));
                     return true;
                 } else {
@@ -241,7 +243,8 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }) {
                 return false;
             }
         },
-        email_address: (event) => {
+        email_address: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> 
+            | Event & { target: { name: string, value: string, validity: { valid: boolean}}}) => {
             return () => { 
                 if (!event.target.value || event.target.validity.valid) {
                     setInvalidFields(invalidFields.filter(field => field !== 'email_address'));
@@ -260,7 +263,7 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }) {
         preventNext(selectedProfile === '__default__' || conversionSettings.insulin_type === '__default__' || invalidFields.length > 0);
     })
 
-    const setStates = React.useCallback(async (data) => {
+    const setStates = React.useCallback(async (data: NightscoutProfile | undefined) => {
         if (data) {
             setProfiles(data);
             setProfileNames([...Object.keys(data.store)].reverse());
@@ -290,8 +293,9 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }) {
         openAdvancedSettings(!advancedSettingsOpened);
     };
 
-    const onProfileSelected = (event) => {
-        let newSettings = {...conversionSettings, profile_name: event.target.value, profile_data: profiles.store[event.target.value]};
+    const onProfileSelected = (event: ChangeEvent<HTMLInputElement> | Event & { target: { value: string, name: string}}) => {
+
+        let newSettings: ConversionSettings = {...conversionSettings, profile_name: event.target.value, profile_data: profiles.store[event.target.value]};
 
         setSelectedProfile(event.target.value);
         setConversionSettings({...newSettings});
@@ -309,7 +313,7 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }) {
         setProfileNames([]);
 
         // And, to prevent inconsistend stored data: remove the converted profile from storage.
-        let newSettings = {...conversionSettings, oaps_profile_data: {}};
+        let newSettings = {...conversionSettings, oaps_profile_data: undefined};
         setConversionSettings({...newSettings});
         store.setConversionSettings({...newSettings});
 
@@ -317,7 +321,7 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }) {
         setStates(await fetchNightscoutProfiles(store, setErrorInfo));
     };
 
-    const onConversionSettingUpdated = (update, validator) => {
+    const onConversionSettingUpdated = (update: { [prop in keyof ConversionSettings]?: ConversionSettings[prop]}, validator?: any) => {
         let newSettings = {...conversionSettings, ...update};
         setConversionSettings({...newSettings});
 
@@ -366,9 +370,9 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }) {
                         <Select
                             id="profile-selector"
                             value={selectedProfile}
-                            onChange={onProfileSelected}
+                            onChange={e => onProfileSelected(e)}
                         >
-                            <MenuItem selected='true' value='__default__'>Select a profile...</MenuItem>
+                            <MenuItem selected={true} value='__default__'>Select a profile...</MenuItem>
                             {profileNames.map((name) => 
                                 <MenuItem value={name}>{name === defaultProfile ? `${name} (default)` : name}</MenuItem>
                             )}
@@ -453,7 +457,7 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }) {
                                     required
                                     type='number'
                                     defaultValue={conversionSettings.min_5m_carbimpact}
-                                    onBlur={e => onConversionSettingUpdated({min_5m_carbimpact: e.target.value})}
+                                    onBlur={e => onConversionSettingUpdated({min_5m_carbimpact: parseFloat(e.target.value)})}
                                     sx={{ m: 1, width: '25ch' }}
                                     slotProps={{
                                         input: {
@@ -471,7 +475,7 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }) {
                                     required
                                     type='number'
                                     defaultValue={conversionSettings.pump_basal_increment}
-                                    onBlur={e => onConversionSettingUpdated({pump_basal_increment: e.target.value})}
+                                    onBlur={e => onConversionSettingUpdated({pump_basal_increment: parseFloat(e.target.value)})}
                                     sx={{ m: 1, width: '25ch' }}
                                     slotProps={{
                                         input: {
@@ -492,7 +496,7 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }) {
                                     required
                                     type='number'
                                     defaultValue={conversionSettings.autotune_days}
-                                    onBlur={e => onConversionSettingUpdated({autotune_days: e.target.value})}
+                                    onBlur={e => onConversionSettingUpdated({autotune_days: parseInt(e.target.value)})}
                                     sx={{ m: 1, width: '25ch' }}
                                     slotProps={{
                                         input: {
@@ -516,9 +520,9 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }) {
                                     value={conversionSettings.insulin_type}
                                     onChange={e => onConversionSettingUpdated({insulin_type: e.target.value}, validations.insulin_type(e))}
                                 >
-                                    <MenuItem selected='true' value='__default__'>Select a type...</MenuItem>
-                                    <MenuItem value={InsulinType.RAPID}>Rapid Acting (Humalog/Novolog/Novorapid)</MenuItem>
-                                    <MenuItem value={InsulinType.ULTRA_RAPID}>Ultra Rapid (Fiasp)</MenuItem>
+                                    <MenuItem selected={true} value='__default__'>Select a type...</MenuItem>
+                                    <MenuItem value={InsulinType.RapidActing}>Rapid Acting (Humalog/Novolog/Novorapid)</MenuItem>
+                                    <MenuItem value={InsulinType.UltraRapid}>Ultra Rapid (Fiasp)</MenuItem>
                                 </Select>
                             </FormControl>
                         </ListItem>
