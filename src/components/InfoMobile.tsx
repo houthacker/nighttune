@@ -4,10 +4,10 @@ import React from 'react';
 import Info from './Info';
 import { Drawer, Button, Box, IconButton } from '@mui/material';
 
-export default function InfoMobile({ steps, activeStep }) {
+export default function InfoMobile({ steps, activeStep }: { steps: { name: string, display_name: string}[], activeStep: number}) {
     const [open, setOpen] = React.useState(false);
 
-    const toggleDrawer = (newOpen) => () => {
+    const toggleDrawer = (newOpen: boolean) => () => {
         setOpen(newOpen);
     }
 

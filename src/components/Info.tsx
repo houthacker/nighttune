@@ -4,7 +4,7 @@ import { InfoText as NightscoutInfoText } from './NightscoutInstance';
 import { InfoText as ProfileDetailsInfoText } from './ProfileDetails';
 import { InfoText as ProfileConversionInfoText } from './ProfileConversion';
 
-export default function Info({ steps, activeStep }) {
+export default function Info({ steps, activeStep }: { steps: { name: string, display_name: string}[], activeStep: number}) {
     return ( 
         <React.Fragment>
             <Typography variant='subtitle2' sx={{ color: 'text.secondary'}} >
