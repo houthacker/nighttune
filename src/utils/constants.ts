@@ -14,6 +14,10 @@ export enum InsulinType {
     Unknown = '__default__',
 }
 
+export function isInsulinType(value: string): value is InsulinType {
+    return Object.values(InsulinType).includes(value as InsulinType);
+}
+
 export const INITIAL_CONVERSION_SETTINGS = {
         min_5m_carbimpact: 8.0,
         pump_basal_increment: 0.01,

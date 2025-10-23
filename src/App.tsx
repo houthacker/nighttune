@@ -73,7 +73,9 @@ function getStepContent(step: number, store: Store, preventNext: Dispatch<SetSta
         store={store}
       />
     case 3:
-      return <AutotuneJobStatus />;  
+      return <AutotuneJobStatus
+        store={store}
+      />;  
     default:
       throw new Error(`Unknown step index '${step}'`)   ;
   }

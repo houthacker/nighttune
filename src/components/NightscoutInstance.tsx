@@ -162,7 +162,7 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
                 <Turnstile
                     sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITEKEY!}
                     onVerify={(token) => {
-                        fetch(process.env.NEXT_PUBLIC_BACKEND_URL!, {
+                        fetch(new URL('turnstile', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
                             method: 'POST',
                             body: JSON.stringify({ token }),
                         }).then((response) => {
