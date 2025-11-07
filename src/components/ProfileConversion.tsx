@@ -1,6 +1,6 @@
 import { Alert, AlertTitle, Box, CircularProgress, Divider, Fade, Grid, InputAdornment, List, ListItem, ListItemText, TextField, Typography } from '@mui/material';
 import { BarPlot, ChartContainer, ChartsAxisHighlight, ChartsTooltip, ChartsXAxis, ChartsYAxis, lineElementClasses, LineHighlightPlot, LinePlot } from '@mui/x-charts';
-import { timeFormat } from 'd3-time-format';
+import { format } from 'date-fns';
 import React from 'react';
 
 import { convertNightscoutProfile, createCrChartSeries, createISFChartSeries } from '../utils/profile';
@@ -107,8 +107,6 @@ export default function ProfileConversion({ store }: { store: Store }): ReactEle
     const [isfSeries, setISFSeries] = React.useState([]  as Array<BarSeriesType | LineSeriesType>);
     const [selectedISF, setSelectedISF] = React.useState(0);
     const originalWeightedAvgISF = React.useRef(0);
-    
-    const timeFormatter = timeFormat('%H:%M');
 
     React.useEffect(() => {
         if (Object.keys(snapshot.conversion_settings.profile_data!).length > 0) {
@@ -276,7 +274,7 @@ export default function ProfileConversion({ store }: { store: Store }): ReactEle
                             xAxis={[
                                 {
                                     id: 'time',
-                                    data: [...new Array(24).keys().map(key => timeFormatter(new Date(0, 0, 0, key, 0)))],
+                                    data: [...new Array(24).keys().map(key => format(new Date(0, 0, 0, key, 0), 'HH:mm'))],
                                     scaleType: 'band',
                                     height: 40,
                                 },
@@ -338,7 +336,7 @@ export default function ProfileConversion({ store }: { store: Store }): ReactEle
                             xAxis={[
                                 {
                                     id: 'time',
-                                    data: [...new Array(24).keys().map(key => timeFormatter(new Date(0, 0, 0, key, 0)))],
+                                    data: [...new Array(24).keys().map(key => format(new Date(0, 0, 0, key, 0), 'HH:mm'))],
                                     scaleType: 'band',
                                     height: 40,
                                 },

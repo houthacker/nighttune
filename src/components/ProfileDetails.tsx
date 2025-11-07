@@ -263,6 +263,29 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }:
         preventNext(selectedProfile === '__default__' || conversionSettings.insulin_type === '__default__' || invalidFields.length > 0);
     })
 
+    // Validate the Nightscout URL / token at the backend. 
+    // A validated Nightscout site is mandatory to submit an autotune job.
+    React.useEffect(() => {
+        async function verify(request: {
+            nightscout_url: string,
+            nightscout_access_token: string | undefined,
+        }) {
+            return await fetch(new URL('verify', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
+                method: 'POST',
+                credentials: 'include',
+                body: JSON.stringify(request, (k, v) => {
+                    return v === undefined && k === "nightscout_access_token" ? undefined : v
+                })
+            })
+        }
+
+        verify({
+            nightscout_url: snapshot.url!,
+            nightscout_access_token: snapshot.access_token
+        })
+    }, [])
+
+
     const setStates = React.useCallback(async (data: NightscoutProfile | undefined) => {
         if (data) {
             setProfiles(data);
