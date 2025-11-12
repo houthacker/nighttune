@@ -19,7 +19,7 @@ export type AutotuneResult = {
 export async function fetchJobs(): Promise<Array<Job>> {
     const response = await fetch(new URL('job/all', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
         method: 'GET',
-        credentials: 'include'
+        credentials: 'include',
     })
 
     const body = await response.json() as { jobs: Array<Job> }

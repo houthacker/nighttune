@@ -165,6 +165,7 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
                         fetch(new URL('turnstile', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
                             method: 'POST',
                             body: JSON.stringify({ token }),
+                            credentials: 'include'
                         }).then((response) => {
                             if (!response.ok) {
                                 turnstile.reset();
