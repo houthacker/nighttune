@@ -1,15 +1,16 @@
 import React, { ReactElement } from 'react'
-import { Box, Button, CircularProgress, Divider, Fade, Grid, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography } from '@mui/material'
+import { Box, Button, CircularProgress, Divider, Fade, Grid, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Modal, Typography } from '@mui/material'
 import { CheckCircleOutline, DownloadOutlined, ErrorOutline, HourglassEmptyOutlined, KeyboardDoubleArrowRight } from '@mui/icons-material'
 import { tz } from '@date-fns/tz'
 import { format, parseISO } from 'date-fns'
 
-import * as ns from '../utils/nightscout'
+import { fetchJobs, fetchJobResults } from '../utils/nightscout'
 import { Store } from '../utils/localStore'
 import FormGrid from './FormGrid'
 
 import type { Snapshot } from '../utils/localStore'
-import type { Job, JobStatus } from '../utils/nightscout'
+import type { AutotuneResult, Job, JobStatus } from '../utils/nightscout'
+import AutotuneJobResults from './AutotuneJobResults'
 
 export function InfoText() {
     return <Box />
@@ -20,9 +21,11 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
     const [jobs, setJobs] = React.useState<Job[] | undefined>(undefined)
     const [haveActiveJob, setHaveActiveJob] = React.useState(false)
     const [intervalHandle, setIntervalHandle] = React.useState(undefined as any)
+    const [jobResults, setJobResults] = React.useState(undefined as AutotuneResult | undefined)
+    const [modalOpen, setModalOpen] = React.useState(false)
 
     async function _fetchJobs() {
-        const jobs = await ns.fetchJobs()
+        const jobs = await fetchJobs()
         setJobs(jobs)
         setHaveActiveJob(jobs.length > 0 && ['submitted', 'processing'].includes(jobs[0].status))
     }
@@ -64,8 +67,9 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
     }
 
     const onGetResultsClicked = async (id: string) => {
-        const result = await ns.fetchJobResults(id)
-        console.log(result)
+        const results = await fetchJobResults(id)
+        setJobResults(results)
+        setModalOpen(!!results)
     }
 
     const JobIcon = (status: JobStatus) => {
@@ -82,6 +86,16 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
     
     return (
         <>
+            <Modal
+                open={modalOpen}
+                onClose={() => { setModalOpen(false) }}
+                sx={{ overflow: 'scroll' }}
+                draggable={true}
+            >
+                <AutotuneJobResults 
+                    result={jobResults}
+                />
+            </Modal>
             <Fade
                 in={jobs === undefined}
                 style={{
