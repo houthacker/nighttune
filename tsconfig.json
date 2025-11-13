@@ -29,7 +29,9 @@
   "include": [
     "./src/",
     "dist/dev/types/**/*.ts",
-    "./dist/types/**/*.ts"
+    "./dist/types/**/*.ts",
+    "./dist/dev/types/**/*.ts",
+    "dist/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

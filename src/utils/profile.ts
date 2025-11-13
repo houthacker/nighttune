@@ -1,25 +1,24 @@
-import { timeParse } from 'd3-time-format';
-import { InsulinType } from './constants';
+import { parse as parseTime } from 'date-fns'
+import { InsulinType } from './constants'
 
-import type { BarSeriesType, LineSeriesType } from '@mui/x-charts';
-import type { ErrorInfo, TimedValue, NormalizedTimedValue, NightscoutProfileDef, OAPSProfile, NightscoutProfile, BgTimeslot, ScheduleSlot } from './constants';
-import type { Snapshot, Store } from './localStore.js';
-/** @import {ErrorInfo} from '../App' */
+import type { BarSeriesType, LineSeriesType } from '@mui/x-charts'
+import type { ErrorInfo, NightscoutProfile, NightscoutProfileDef, NormalizedTimedValue, OAPSProfile, ScheduleSlot, TimedValue } from './constants'
+import type { Snapshot, Store } from './localStore.js'
 
 
 function normalizeNightscoutTimedElement(element: TimedValue): NormalizedTimedValue {
     let time = {...element}
     if(time.timeAsSeconds === undefined) {
-        let tm = timeParse('%H:%M')(time.time);
+        const tm = parseTime(time.time, 'HH:mm', Date.now())
 
         if (tm) {
             time.timeAsSeconds = tm.getHours() * 3600 + tm.getMinutes() * 60
         }
     }
     if(time.time === undefined) {
-        let hours = time.timeAsSeconds / 3600;
-        let minutes = time.timeAsSeconds % 60;
-        time.time = String(hours).padStart(2, '0') + ":" + String(minutes).padStart(2, '0');
+        let hours = time.timeAsSeconds / 3600
+        let minutes = time.timeAsSeconds % 60
+        time.time = String(hours).padStart(2, '0') + ":" + String(minutes).padStart(2, '0')
     }
 
     return {

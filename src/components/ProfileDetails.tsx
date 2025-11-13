@@ -2,7 +2,7 @@ import React, { ChangeEvent } from 'react';
 
 import { Cached, ExpandLess as ExpandLessIcon, ExpandMore as ExpandMoreIcon, WarningAmber as WarningAmberIcon } from '@mui/icons-material';
 import { Box, Button, CircularProgress, Collapse, Divider, Fade, FormControl, Grid, InputAdornment, InputLabel, List, ListItem, ListItemButton, ListItemIcon, ListItemText, MenuItem, Select, TextField, Tooltip, Typography } from '@mui/material';
-import { ErrorInfo, INITIAL_CONVERSION_SETTINGS, InsulinType, NightscoutProfile, NightscoutProfiles } from '../utils/constants';
+import { ErrorInfo, INITIAL_CONVERSION_SETTINGS, InsulinType, isInsulinType, NightscoutProfile, NightscoutProfiles } from '../utils/constants';
 import { fetchNightscoutProfiles } from '../utils/profile';
 import FormGrid from './FormGrid';
 import { ConversionSettings, Snapshot, Store } from '../utils/localStore';
@@ -233,7 +233,7 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }:
     const validations = {
         insulin_type: (event: ChangeEvent<HTMLInputElement> | Event & { target: { name: string, value: string}}) => {
             return () => { 
-                if (event.target.value in InsulinType) {
+                if (isInsulinType(event.target.value)) {
                     setInvalidFields(invalidFields.filter(field => field !== 'insulin_type'));
                     return true;
                 } else {
@@ -262,6 +262,29 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }:
     React.useEffect(() => {
         preventNext(selectedProfile === '__default__' || conversionSettings.insulin_type === '__default__' || invalidFields.length > 0);
     })
+
+    // Validate the Nightscout URL / token at the backend. 
+    // A validated Nightscout site is mandatory to submit an autotune job.
+    React.useEffect(() => {
+        async function verify(request: {
+            nightscout_url: string,
+            nightscout_access_token: string | undefined,
+        }) {
+            return await fetch(new URL('verify', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
+                method: 'POST',
+                credentials: 'include',
+                body: JSON.stringify(request, (k, v) => {
+                    return v === undefined && k === "nightscout_access_token" ? undefined : v
+                })
+            })
+        }
+
+        verify({
+            nightscout_url: snapshot.url!,
+            nightscout_access_token: snapshot.access_token
+        })
+    }, [])
+
 
     const setStates = React.useCallback(async (data: NightscoutProfile | undefined) => {
         if (data) {
@@ -457,7 +480,7 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }:
                                     required
                                     type='number'
                                     defaultValue={conversionSettings.min_5m_carbimpact}
-                                    onBlur={e => onConversionSettingUpdated({min_5m_carbimpact: parseFloat(e.target.value)})}
+                                    onChange={e => onConversionSettingUpdated({min_5m_carbimpact: parseFloat(e.target.value)})}
                                     sx={{ m: 1, width: '25ch' }}
                                     slotProps={{
                                         input: {
@@ -475,7 +498,7 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }:
                                     required
                                     type='number'
                                     defaultValue={conversionSettings.pump_basal_increment}
-                                    onBlur={e => onConversionSettingUpdated({pump_basal_increment: parseFloat(e.target.value)})}
+                                    onChange={e => onConversionSettingUpdated({pump_basal_increment: parseFloat(e.target.value)})}
                                     sx={{ m: 1, width: '25ch' }}
                                     slotProps={{
                                         input: {
@@ -496,7 +519,7 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }:
                                     required
                                     type='number'
                                     defaultValue={conversionSettings.autotune_days}
-                                    onBlur={e => onConversionSettingUpdated({autotune_days: parseInt(e.target.value)})}
+                                    onChange={e => onConversionSettingUpdated({autotune_days: parseInt(e.target.value)})}
                                     sx={{ m: 1, width: '25ch' }}
                                     slotProps={{
                                         input: {
