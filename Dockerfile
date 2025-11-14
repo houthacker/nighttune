@@ -3,6 +3,7 @@ LABEL org.opencontainers.image.authors="github.com/houthacker"
 
 WORKDIR /nighttune
 COPY . .
+RUN npm install
 RUN npm run build
 
 WORKDIR /nighttune
