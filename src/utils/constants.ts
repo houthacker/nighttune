@@ -94,7 +94,7 @@ export interface NightscoutProfileDef {
     /**
      * The units used in this profile.
      */
-    units: 'mg/dL' | 'mmol',
+    units: 'mg/dl' | 'mmol',
 
     /**
      * The name of the native timezone if this profile, e.g. `Europe/Amsterdam`.
@@ -272,7 +272,7 @@ export interface OAPSProfile {
     /**
      * The output units.
      */
-    out_units: 'mg/dL' | 'mmol',
+    out_units: 'mg/dl' | 'mmol',
 
     /**
      * The native time zone name, e.g. `Europe/Amsterdam`.
@@ -283,8 +283,8 @@ export interface OAPSProfile {
      * The blood glucose target time slots.
      */
     bg_targets: {
-        units: 'mg/dL' | 'mmol',
-        user_preferred_units: 'mg/dL' | 'mmol',
+        units: 'mg/dl' | 'mmol',
+        user_preferred_units: 'mg/dl' | 'mmol',
         targets: BgTimeslot[],
     },
 
