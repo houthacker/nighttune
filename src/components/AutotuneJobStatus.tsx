@@ -59,7 +59,13 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
                 nightscout_access_token: snapshot.access_token,
                 settings: snapshot.conversion_settings
             }, (k, v) => {
-                return v === undefined && k === "nightscout_access_token" ? undefined : v
+                if (k === "email_address" && v === "") {
+                    return undefined
+                } else if (k === "nightscout_access_token" && v === undefined) {
+                    return undefined
+                }
+                
+                return v
             })
         })
 
