@@ -14,6 +14,8 @@ export enum InsulinType {
     Unknown = '__default__',
 }
 
+export type Unit = 'mg/dl' | 'mg/dL' | 'mmol' | 'mmol/l' | 'mmol/L'
+
 export function isInsulinType(value: string): value is InsulinType {
     return Object.values(InsulinType).includes(value as InsulinType);
 }
@@ -93,7 +95,7 @@ export interface NightscoutProfileDef {
     /**
      * The units used in this profile.
      */
-    units: 'mg/dl' | 'mmol',
+    units: Unit,
 
     /**
      * The name of the native timezone if this profile, e.g. `Europe/Amsterdam`.
@@ -271,7 +273,7 @@ export interface OAPSProfile {
     /**
      * The output units.
      */
-    out_units: 'mg/dl' | 'mmol',
+    out_units: Unit,
 
     /**
      * The native time zone name, e.g. `Europe/Amsterdam`.
@@ -282,8 +284,8 @@ export interface OAPSProfile {
      * The blood glucose target time slots.
      */
     bg_targets: {
-        units: 'mg/dl' | 'mmol',
-        user_preferred_units: 'mg/dl' | 'mmol',
+        units: Unit,
+        user_preferred_units: Unit,
         targets: BgTimeslot[],
     },
 
