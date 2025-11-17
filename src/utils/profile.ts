@@ -5,6 +5,14 @@ import type { BarSeriesType, LineSeriesType } from '@mui/x-charts'
 import type { ErrorInfo, NightscoutProfile, NightscoutProfileDef, NormalizedTimedValue, OAPSProfile, ScheduleSlot, TimedValue } from './constants'
 import type { Snapshot, Store } from './localStore.js'
 
+function toNumber(value: string | number): number {
+    if (typeof value === 'number') {
+        return value
+    }
+
+    // assume string
+    return Number(value)
+}
 
 function normalizeNightscoutTimedElement(element: TimedValue): NormalizedTimedValue {
     let time = {...element}
@@ -26,7 +34,7 @@ function normalizeNightscoutTimedElement(element: TimedValue): NormalizedTimedVa
         minutes: time.timeAsSeconds / 60,
         time: time.time,
         start: time.time + ":00",
-        value: time.value,
+        value: toNumber(time.value),
     }
 }
 
@@ -92,7 +100,7 @@ export function convertNightscoutProfile(
         oaps_profile.basalprofile.push({
             i: oaps_profile.basalprofile.length,
             ...normalizeNightscoutTimedElement(basal_item),
-            rate: basal_item.value
+            rate: toNumber(basal_item.value)
         });
     }
 
