@@ -24,7 +24,6 @@ export const INITIAL_CONVERSION_SETTINGS = {
         autotune_days: 7,
         uam_as_basal: false,
         insulin_type: '__default__',
-        email_address: '',
         autosens_min: 0.7,
         autosens_max: 1.2,
 }

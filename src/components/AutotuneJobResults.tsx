@@ -1,9 +1,9 @@
-import React, { ReactElement } from 'react'
 import { tz } from '@date-fns/tz'
 import { format, parseISO } from 'date-fns'
+import { ReactElement } from 'react'
 
-import { AutotuneResult, RecommendationType, Recommendation } from '../utils/nightscout'
-import { Box, Divider, Grid, List, ListItem, ListItemText, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material'
+import { Box, List, ListItem, ListItemText, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material'
+import { AutotuneResult } from '../utils/nightscout'
 
 const style = {
     position: 'absolute',
