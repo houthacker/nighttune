@@ -15,6 +15,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  Link,
 } from '@mui/material';
 
 import AutotuneJobStatus from './components/AutotuneJobStatus';
@@ -26,12 +27,13 @@ import ColorModeIconDropdown from './components/shared-theme/ColorModeIconDropdo
 import NightscoutIcon from "./components/NightscoutIcon";
 import Info from "./components/Info";
 import InfoMobile from "./components/InfoMobile";
+import VersionLink from './components/VersionLink';
 
 import HighlightOffOutlinedIcon from '@mui/icons-material/HighlightOffOutlined';
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 
-import store, { STORE_EVENT_TYPES } from './utils/localStore';
+import store from './utils/localStore';
 import ProfileConversion from './components/ProfileConversion';
 
 import type { Dispatch, SetStateAction } from 'react';
@@ -364,6 +366,13 @@ export default function App(props: any) {
                 )}
               </Box>
             </React.Fragment>
+          </Box>
+          <Box sx={{ py: 3, mt: 'auto' }}>
+            <Grid container>
+                <Typography variant='body2' color='text.secondary'>
+                  Nighttune version: <VersionLink />
+                </Typography>
+            </Grid>
           </Box>
         </Grid>
       </Grid>
