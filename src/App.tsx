@@ -367,7 +367,7 @@ export default function App(props: any) {
               </Box>
             </React.Fragment>
           </Box>
-          <Box sx={{ py: 3, mt: 'auto' }}>
+          <Box sx={{ position: 'fixed', bottom: '5px', left: { xs: '5px', md: '35%'} }}>
             <Grid container>
                 <Typography variant='body2' color='text.secondary'>
                   Nighttune version: <VersionLink />
