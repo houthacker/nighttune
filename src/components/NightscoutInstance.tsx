@@ -173,7 +173,7 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
                             setTurnstileValid(response.ok === true);
                         });
                     }}
-                    size='normal'
+                    size='flexible'
                     refreshExpired='auto'
                     appearance='interaction-only'
                     theme='auto'
