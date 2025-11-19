@@ -1,5 +1,5 @@
 import React, { ReactElement } from 'react'
-import { Box, Button, CircularProgress, Divider, Fade, Grid, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Modal, Typography } from '@mui/material'
+import { Alert, Box, Button, CircularProgress, Collapse, Divider, Fade, Grid, Link, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Modal, Typography } from '@mui/material'
 import { CheckCircleOutline, DownloadOutlined, ErrorOutline, HourglassEmptyOutlined, KeyboardDoubleArrowRight } from '@mui/icons-material'
 import { tz } from '@date-fns/tz'
 import { format, parseISO } from 'date-fns'
@@ -12,6 +12,12 @@ import type { Snapshot } from '../utils/localStore'
 import type { AutotuneResult, Job, JobStatus } from '../utils/nightscout'
 import AutotuneJobResults from './AutotuneJobResults'
 
+const DEFAULT_SUBMIT_STATUS = {
+    error: false, 
+    status: 0,
+    hint: undefined as string | undefined
+}
+
 export function InfoText() {
     return <Box />
 }
@@ -23,6 +29,7 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
     const [intervalHandle, setIntervalHandle] = React.useState(undefined as any)
     const [jobResults, setJobResults] = React.useState(undefined as AutotuneResult | undefined)
     const [modalOpen, setModalOpen] = React.useState(false)
+    const [submitStatus, setSubmitStatus] = React.useState(DEFAULT_SUBMIT_STATUS)
 
     async function _fetchJobs() {
         const jobs = await fetchJobs()
@@ -51,25 +58,45 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
     }, [haveActiveJob])
 
     const onSubmitClicked = async () => {
-        const result = await fetch(new URL('job', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
-            method: 'POST',
-            credentials: 'include',
-            body: JSON.stringify({
-                nightscout_url: snapshot.url!,
-                nightscout_access_token: snapshot.access_token,
-                settings: snapshot.conversion_settings
-            }, (k, v) => {
-                if (k === "email_address" && v === "") {
-                    return undefined
-                } else if (k === "nightscout_access_token" && v === undefined) {
-                    return undefined
-                }
-                
-                return v
+        try {
+            const result = await fetch(new URL('job', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
+                method: 'POST',
+                credentials: 'include',
+                body: JSON.stringify({
+                    nightscout_url: snapshot.url!,
+                    nightscout_access_token: snapshot.access_token,
+                    settings: snapshot.conversion_settings
+                }, (k, v) => {
+                    if (k === "email_address" && v === "") {
+                        return undefined
+                    } else if (k === "nightscout_access_token" && v === undefined) {
+                        return undefined
+                    }
+                    
+                    return v
+                })
             })
-        })
 
-        setHaveActiveJob(result.ok)
+            if (result.ok) {
+                setHaveActiveJob(true)
+                setSubmitStatus(DEFAULT_SUBMIT_STATUS)
+            } else {
+                console.error(result)
+                setHaveActiveJob(false)
+                setSubmitStatus({
+                    error: true,
+                    status: result.status,
+                    hint: `HTTP ${result.status}`
+                })
+            }
+        } catch (error: any) {
+            setHaveActiveJob(false)
+            setSubmitStatus({
+                error: true,
+                status: 0,
+                hint: error instanceof Error ? error.message : 'Unknown error'
+            })
+        }
     }
 
     const onGetResultsClicked = async (id: string) => {
@@ -138,6 +165,14 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
                     </FormGrid>
                 </Grid>
             </React.Activity>
+            <Collapse in={submitStatus.error}>
+                <Alert 
+                    severity='error'
+                >Could not submit job: <code>{submitStatus.hint}</code> 
+                    {(submitStatus.status === 0 || submitStatus.status >= 500) && 
+                    <><br /><Link target='_blank' rel='noopener' href={process.env.NEXT_PUBLIC_NT_BUGS_OVERVIEW_URL!}>Explore current issues at github.</Link></>}
+                </Alert>
+            </Collapse>
             <React.Activity mode={jobs === undefined ? 'hidden' : 'visible'}>
                 <Box>
                     <Typography variant='h5' sx={{ color: 'text.primary' }}>
