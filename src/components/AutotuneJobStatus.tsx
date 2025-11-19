@@ -1,6 +1,6 @@
 import React, { ReactElement } from 'react'
 import { Alert, Box, Button, CircularProgress, Collapse, Divider, Fade, Grid, Link, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Modal, Typography } from '@mui/material'
-import { CheckCircleOutline, DownloadOutlined, ErrorOutline, HourglassEmptyOutlined, KeyboardDoubleArrowRight } from '@mui/icons-material'
+import { CheckCircleOutline, ConstructionOutlined, DownloadOutlined, ErrorOutline, HourglassEmptyOutlined, KeyboardDoubleArrowRight } from '@mui/icons-material'
 import { tz } from '@date-fns/tz'
 import { format, parseISO } from 'date-fns'
 
@@ -32,9 +32,9 @@ export function InfoText() {
                             If there is no currently running job, you can submit a new one by 
                             clicking on the <code>Submit new job &gt;&gt;</code> button.<br />
                             The job will then be executed. Once it has finished, its results can be
-                            viewed using the <code>Get results</code> button. 
-                            Once <Link href='https://github.com/houthacker/nighttune-backend/issues/15'>nighttune-backend #15</Link>
-                            has been implemented and you provided your email address, you'll receive an email containing the results
+                            viewed using the <code>Get results</code> button. <br />
+                            Once <ConstructionOutlined />&nbsp;<Link href='https://github.com/houthacker/nighttune-backend/issues/15'>nighttune-backend #15
+                            </Link> has been implemented and you provided your email address, you'll receive an email containing the results
                             as well.
                         </Typography>
                     }
@@ -52,7 +52,7 @@ export function InfoText() {
                             This shows a list of the last 30 jobs that have been executed
                             against your Nightscout instance. Although you can view the results here,
                             it is recommended that you provide an email address to send the results to
-                            if you want to be able to view job results earlier than the last 30.
+                            if you want to be able to view job results previous to the last 30.
                         </Typography>
                     }
                 ></ListItemText>
