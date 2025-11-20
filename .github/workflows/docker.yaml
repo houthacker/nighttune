@@ -47,7 +47,7 @@ jobs:
         run: |
           echo "NEXT_PUBLIC_BACKEND_BASE_URL=${{ secrets.BACKEND_BASE_URL }}" > .env.production
           echo "NEXT_PUBLIC_TURNSTILE_SITEKEY=${{ secrets.TURNSTILE_SITE_KEY }}" >> .env.production
-          echo "NEXT_PUBLIC_NT_VERSION=${GITHUB_REF#refs/tags/v}" >> .env.production
+          echo "NEXT_PUBLIC_NT_VERSION=${GITHUB_REF#refs/tags/}" >> .env.production
           echo "NEXT_PUBLIC_NT_BUGS_OVERVIEW=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/issues?q=is%3Aissue+state%3Aopen+label%3Abug"
 
       # This step uses the `docker/build-push-action` action to build the image, based on your repository's `Dockerfile`. If the build succeeds, it pushes the image to GitHub Packages.
