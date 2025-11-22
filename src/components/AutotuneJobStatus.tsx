@@ -18,6 +18,8 @@ const DEFAULT_SUBMIT_STATUS = {
     hint: undefined as string | undefined
 }
 
+const browserTimezone: string = Intl.DateTimeFormat().resolvedOptions().timeZone
+
 export function InfoText() {
     return (
         <List sx={{ bgcolor: 'background.paper' }}>
@@ -53,6 +55,26 @@ export function InfoText() {
                     }
                 ></ListItemText>
             </ListItem>
+            <Divider variant='inset' component='li' />
+            <ListItem alignItems='flex-start'>
+                <ListItemText
+                    primary="Time zones"
+                    slotProps={{
+                        primary: { color: 'text.primary' }
+                    }}
+                    secondary={
+                        <Typography variant='body2' sx={{ color: 'text.secondary'}} >
+                            The job submit time is shown in the timezone of your browser,
+                            which is "<code>{browserTimezone}</code>". <br />
+                            When viewing the results of a previous job, the timezone of the Nightscout
+                            profile at that time is used.<br /><br />
+                            If you're at home, there probably will be no difference between these two, but 
+                            if you're travelling to a different time zone it's important to know these 
+                            time zones can be different.
+                        </Typography>
+                    }
+                ></ListItemText>
+            </ListItem>
         </List>
     )
 }
@@ -65,8 +87,6 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
     const [jobResults, setJobResults] = React.useState(undefined as AutotuneResult | undefined)
     const [modalOpen, setModalOpen] = React.useState(false)
     const [submitStatus, setSubmitStatus] = React.useState(DEFAULT_SUBMIT_STATUS)
-
-    const browserTimezone: string = Intl.DateTimeFormat().resolvedOptions().timeZone
 
     async function _fetchJobs() {
         const jobs = await fetchJobs()

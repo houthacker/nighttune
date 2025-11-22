@@ -38,6 +38,9 @@ export default function AutotuneJobResults(props: AutotuneJobResultsProps): Reac
         </Typography>
         <Box key='autotune-options'>
             <List key='autotune-options-list' dense={true} disablePadding={true} sx={{ width: '100%'}}>
+                <ListItem key='timezone' divider={true}>
+                    <ListItemText primary='Profile time zone' secondary={props.result.options.timeZone} />
+                </ListItem>
                 <ListItem key='date-from' divider={true}>
                     <ListItemText primary='from' secondary={format(parseISO(props.result.options.dateFrom), 'yyyy-MM-dd', {
                         in: tz(props.result.options.timeZone)
@@ -49,7 +52,7 @@ export default function AutotuneJobResults(props: AutotuneJobResultsProps): Reac
                     })} />
                 </ListItem>
                 <ListItem key='uam' divider={true}>
-                    <ListItemText primary='UAM as basal' secondary={props.result.options.uam ? 'true' : 'false'} />
+                    <ListItemText primary='Categorize UAM as basal' secondary={props.result.options.uam ? 'true' : 'false'} />
                 </ListItem>
             </List>
         </Box>
