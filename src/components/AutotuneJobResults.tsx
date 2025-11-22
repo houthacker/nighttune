@@ -38,18 +38,21 @@ export default function AutotuneJobResults(props: AutotuneJobResultsProps): Reac
         </Typography>
         <Box key='autotune-options'>
             <List key='autotune-options-list' dense={true} disablePadding={true} sx={{ width: '100%'}}>
+                <ListItem key='timezone' divider={true}>
+                    <ListItemText primary='Profile time zone' secondary={props.result.options.timeZone} />
+                </ListItem>
                 <ListItem key='date-from' divider={true}>
                     <ListItemText primary='from' secondary={format(parseISO(props.result.options.dateFrom), 'yyyy-MM-dd', {
-                        in: tz(Intl.DateTimeFormat().resolvedOptions().timeZone)
+                        in: tz(props.result.options.timeZone)
                     })} />
                 </ListItem>
                 <ListItem key='date-to' divider={true}>
                     <ListItemText primary='to' secondary={format(parseISO(props.result.options.dateTo), 'yyyy-MM-dd', {
-                        in: tz(Intl.DateTimeFormat().resolvedOptions().timeZone)
+                        in: tz(props.result.options.timeZone)
                     })} />
                 </ListItem>
                 <ListItem key='uam' divider={true}>
-                    <ListItemText primary='UAM as basal' secondary={props.result.options.uam ? 'true' : 'false'} />
+                    <ListItemText primary='Categorize UAM as basal' secondary={props.result.options.uam ? 'true' : 'false'} />
                 </ListItem>
             </List>
         </Box>
@@ -102,7 +105,7 @@ export default function AutotuneJobResults(props: AutotuneJobResultsProps): Reac
                         <TableRow key={`basal-${format(parseISO(row.when), 'HHmm')}`}>
                             <TableCell>{format(parseISO(row.when), 'HH:mm', 
                                 {
-                                    in: tz(Intl.DateTimeFormat().resolvedOptions().timeZone)
+                                    in: tz(props.result!.options.timeZone)
                                 })}
                             </TableCell>
                             <TableCell>{row.currentValue}</TableCell>
