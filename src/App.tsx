@@ -11,6 +11,7 @@ import {
   DialogTitle,
   Grid,
   Step,
+  StepButton,
   StepLabel,
   Stepper,
   Typography
@@ -219,20 +220,22 @@ export default function App(props: any) {
                 activeStep={activeStep}
                 sx={{ width: '100%', height: 40 }}
               >
-                {steps.map((step) => (
+                {steps.map((step, index) => (
                   <Step
                     sx={{ ':first-of-type': { pl: 0 }, ':last-of-type': { pr: 0} }}
                     key={step.name}
                   >
-                    <StepLabel
-                      error={errorInfo.isError && step.name === steps[errorInfo.errorStep].name}
-                      optional={errorInfo.isError  && step.name === steps[errorInfo.errorStep].name 
-                        ? <Typography variant='caption' color='error'>{errorInfo.errorText}</Typography> 
-                        : undefined
-                      }
-                    >
-                      {step.display_name}
-                    </StepLabel>
+                    <StepButton disabled={index > activeStep && preventNext} onClick={() => setActiveStep(index)}>
+                      <StepLabel
+                        error={errorInfo.isError && step.name === steps[errorInfo.errorStep].name}
+                        optional={errorInfo.isError  && step.name === steps[errorInfo.errorStep].name 
+                          ? <Typography variant='caption' color='error'>{errorInfo.errorText}</Typography> 
+                          : undefined
+                        }
+                      >
+                        {step.display_name}
+                      </StepLabel>
+                    </StepButton>
                   </Step>
                 ))}
               </Stepper>
@@ -272,7 +275,7 @@ export default function App(props: any) {
               alternativeLabel
               sx={{ display: { sm: 'flex', md: 'none' } }}
             >
-              {steps.map((step) => (
+              {steps.map((step, index) => (
                 <Step
                   sx={{
                     ':first-of-type': { pl: 0 },
@@ -281,16 +284,18 @@ export default function App(props: any) {
                   }}
                   key={step.name}
                 >
-                  <StepLabel
-                    error={errorInfo.isError && step.name === steps[errorInfo.errorStep].name}
-                    optional={errorInfo.isError  && step.name === steps[errorInfo.errorStep].name 
-                      ? <Typography variant='caption' color='error'>{errorInfo.errorText}</Typography> 
-                      : undefined
-                    }
-                    sx={{ '.MuiStepLabel-labelContainer': { maxWidth: '70px' } }}
-                  >
-                    {step.display_name}
-                  </StepLabel>
+                  <StepButton disabled={index > activeStep && preventNext} onClick={() => setActiveStep(index)}>
+                    <StepLabel
+                      error={errorInfo.isError && step.name === steps[errorInfo.errorStep].name}
+                      optional={errorInfo.isError  && step.name === steps[errorInfo.errorStep].name 
+                        ? <Typography variant='caption' color='error'>{errorInfo.errorText}</Typography> 
+                        : undefined
+                      }
+                      sx={{ '.MuiStepLabel-labelContainer': { maxWidth: '70px' } }}
+                    >
+                      {step.display_name}
+                    </StepLabel>
+                  </StepButton>
                 </Step>
               ))}
             </Stepper>
