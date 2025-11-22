@@ -66,6 +66,8 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
     const [modalOpen, setModalOpen] = React.useState(false)
     const [submitStatus, setSubmitStatus] = React.useState(DEFAULT_SUBMIT_STATUS)
 
+    const browserTimezone: string = Intl.DateTimeFormat().resolvedOptions().timeZone
+
     async function _fetchJobs() {
         const jobs = await fetchJobs()
         setJobs(jobs)
@@ -237,7 +239,7 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
                                 </Grid>
                                 <Grid size={4} sx={{ marginLeft: '2em', marginTop: '.5em' }}>
                                     <ListItemText >{format(parseISO(job.submittedAt), 'yyyy-MM-dd HH:mm', {
-                                        in: tz(Intl.DateTimeFormat().resolvedOptions().timeZone)
+                                        in: tz(browserTimezone)
                                     })}</ListItemText>
                                 </Grid>
                             </Grid>
