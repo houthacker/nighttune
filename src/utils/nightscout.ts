@@ -16,6 +16,7 @@ export type AutotuneOptions = {
     readonly uam: boolean
     readonly autotuneVersion: string
     readonly timeZone: string
+    readonly basalIncrement: number
 }
 
 export enum RecommendationType {
@@ -28,12 +29,12 @@ export type Recommendation = {
     readonly type: RecommendationType
     readonly currentValue: number
     readonly recommendedValue: number
-    readonly roundedRecommendation: number
 }
 
 export type BasalRecommendation = Recommendation & {
     when: string
     daysMissing: number
+    roundedRecommendation: number
 }
 
 export class AutotuneResult {

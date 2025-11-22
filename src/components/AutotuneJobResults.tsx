@@ -93,6 +93,7 @@ export default function AutotuneJobResults(props: AutotuneJobResultsProps): Reac
                         <TableCell>Time</TableCell>
                         <TableCell>Original value</TableCell>
                         <TableCell>Autotune result</TableCell>
+                        <TableCell>Rounded to {props.result.options.basalIncrement || 'pump increment'}</TableCell>
                         <TableCell>Days missing</TableCell>
                     </TableRow>
                 </TableHead>
@@ -106,6 +107,7 @@ export default function AutotuneJobResults(props: AutotuneJobResultsProps): Reac
                             </TableCell>
                             <TableCell>{row.currentValue}</TableCell>
                             <TableCell>{row.recommendedValue}</TableCell>
+                            <TableCell>{row.roundedRecommendation}</TableCell>
                             <TableCell>{row.daysMissing}</TableCell>
                         </TableRow>
                     ))}
