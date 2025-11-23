@@ -88,3 +88,5 @@ jobs:
             docker compose -f ${{ secrets.DEPLOY_SSH_DOCKER_COMPOSE_FILE }} pull ${{ env.DOCKER_COMPOSE_SERVICE_NAME }}
             echo "*** Starting ${{ env.IMAGE_NAME }}:${GITHUB_REF#refs/tags/} ***"
             docker compose -f ${{ secrets.DEPLOY_SSH_DOCKER_COMPOSE_FILE }} up -d
+            echo "*** Cleaning up unused images ***"
+            docker image prune -f
