@@ -1,4 +1,4 @@
-import { Alert, AlertTitle, Box, CircularProgress, Divider, Fade, Grid, InputAdornment, List, ListItem, ListItemText, TextField, Typography } from '@mui/material';
+import { Alert, AlertTitle, Box, CircularProgress, Divider, Fade, FormControl, Grid, InputAdornment, InputLabel, List, ListItem, ListItemText, MenuItem, Select, TextField, Typography } from '@mui/material';
 import { BarPlot, ChartContainer, ChartsAxisHighlight, ChartsTooltip, ChartsXAxis, ChartsYAxis, lineElementClasses, LineHighlightPlot, LinePlot } from '@mui/x-charts';
 import { format } from 'date-fns';
 import React from 'react';
@@ -10,6 +10,7 @@ import type { ChangeEvent, FocusEvent, ReactElement } from 'react';
 import type { BarSeriesType, ChartsAxisData, LineSeriesType } from '@mui/x-charts';
 import type { Snapshot, Store } from '../utils/localStore';
 import { OAPSProfile } from '../utils/constants';
+import { BasalSmoothing } from '../utils/nightscout';
 
 export function InfoText() {
     return (
@@ -87,6 +88,26 @@ export function InfoText() {
                     }
                 />
             </ListItem>
+            <Divider variant="inset" component="li" />
+            <ListItem alignItems="flex-start">
+                <ListItemText
+                    primary="Basal smoothibng"
+                    slotProps={{
+                        primary: { color: 'text.primary' }
+                    }}
+                    secondary={
+                        <Typography variant='body2' sx={{ color: 'text.secondary'}} >
+                            Basal suggestions can sometimes be a little spikey. If you want to
+                            remove these spikes and use more physiological 'fitting' values,
+                            select one of the basal smoothing options. The more smoothing you select,
+                            the more intense/aggressive the smoothing algorithm will work.<br /><br />
+
+                            The smoothed values will be shown next to the original autotune recommendations
+                            in the job results.
+                        </Typography>
+                    }
+                />
+            </ListItem>
         </List>
     );
 };
@@ -107,6 +128,9 @@ export default function ProfileConversion({ store }: { store: Store }): ReactEle
     const [isfSeries, setISFSeries] = React.useState([]  as Array<BarSeriesType | LineSeriesType>);
     const [selectedISF, setSelectedISF] = React.useState(0);
     const originalWeightedAvgISF = React.useRef(0);
+
+    // Basal smoothing intensity
+    const [basalSmoothing, setBasalSmoothing] = React.useState(BasalSmoothing.NONE)
 
     React.useEffect(() => {
         if (Object.keys(snapshot.conversion_settings.profile_data!).length > 0) {
@@ -195,7 +219,25 @@ export default function ProfileConversion({ store }: { store: Store }): ReactEle
 
         store.setConversionSettings(update);
         setSelectedISF(isf);
-    };    
+    }
+
+    // Set previously selected basal smoothing intensity on page load
+    React.useEffect(() => {
+        if (snapshot.conversion_settings.basal_smoothing) {
+            setBasalSmoothing(snapshot.conversion_settings.basal_smoothing)
+        }
+    })
+
+    const onBasalSmoothingUpdated = (event: ChangeEvent<HTMLInputElement> | Event & { target: { value: string, name: string}}) => {
+        const value = event.target.value as BasalSmoothing
+
+        // Store selected smoothing intensity in conversion settings.
+        let update = {...snapshot.conversion_settings}
+        update.basal_smoothing = value
+
+        store.setConversionSettings(update)
+        setBasalSmoothing(value)
+    }
 
     return (
         <>
@@ -470,6 +512,34 @@ export default function ProfileConversion({ store }: { store: Store }): ReactEle
                                         </Typography>
                                     </Fade>
                                 </Grid>
+                            </ListItem>
+                        </List>
+                    </Box>
+                    <Box>
+                        <Typography key='basal-smoothing-title' variant='h5' sx={{ color: 'text.primary' }}>
+                                Basal smoothing
+                        </Typography>
+                        <Divider key='basal-smoothing-divider' sx={{ opacity: 0.6 }} />
+                        <Typography variant='body2'>
+                                If you want to smooth the basal values, select the desired intensity below.
+                        </Typography>
+                        <List dense={true} disablePadding={true} sx={{ width: '100%'}}>
+                            <ListItem key='li-smoothing-intensity' divider={true}>
+                                <FormControl sx={{ m: 1, minWidth: 200 }} size='small'>
+                                    <InputLabel id='lbl-basal-smoothing'>Smoothing intensity</InputLabel>
+                                    <Select
+                                        id='basal-smoothing'
+                                        labelId='lbl-basal-smoothing'
+                                        required
+                                        value={basalSmoothing}
+                                        onChange={e => {onBasalSmoothingUpdated(e)}} 
+                                    >
+                                        <MenuItem selected={true} value={BasalSmoothing.NONE}>No smoothing</MenuItem>
+                                        <MenuItem value={BasalSmoothing.LOW}>Low</MenuItem>
+                                        <MenuItem value={BasalSmoothing.MEDIUM}>Medium</MenuItem>
+                                        <MenuItem value={BasalSmoothing.HIGH}>High</MenuItem>
+                                    </Select>
+                                </FormControl>
                             </ListItem>
                         </List>
                     </Box>
