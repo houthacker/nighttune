@@ -3,7 +3,7 @@ import { format, parseISO } from 'date-fns'
 import { ReactElement } from 'react'
 
 import { Box, List, ListItem, ListItemText, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material'
-import { AutotuneResult } from '../utils/nightscout'
+import { AutotuneResult, BasalSmoothing, PostProcessType, roundToNext } from '../utils/nightscout'
 
 const style = {
     position: 'absolute',
@@ -16,6 +16,10 @@ const style = {
     border: '2px solid #000',
     boxShadow: 24,
     p: 4,
+}
+
+function haveBasalSmoothing(props: AutotuneJobResultsProps): boolean {
+    return [BasalSmoothing.LOW, BasalSmoothing.MEDIUM, BasalSmoothing.HIGH].includes(props.result?.options.basalSmoothing || BasalSmoothing.NONE)
 }
 
 export type AutotuneJobResultsProps = {
@@ -53,6 +57,9 @@ export default function AutotuneJobResults(props: AutotuneJobResultsProps): Reac
                 </ListItem>
                 <ListItem key='uam' divider={true}>
                     <ListItemText primary='Categorize UAM as basal' secondary={props.result.options.uam ? 'true' : 'false'} />
+                </ListItem>
+                <ListItem key='basal-smoothing' divider={true}>
+                    <ListItemText primary='Basal smoothing' secondary={props.result.options.basalSmoothing} />
                 </ListItem>
             </List>
         </Box>
@@ -97,6 +104,7 @@ export default function AutotuneJobResults(props: AutotuneJobResultsProps): Reac
                         <TableCell>Original value</TableCell>
                         <TableCell>Autotune result</TableCell>
                         <TableCell>Rounded to {props.result.options.basalIncrement || 'pump increment'}</TableCell>
+                        {haveBasalSmoothing(props) && <TableCell>Smoothed</TableCell>}
                         <TableCell>Days missing</TableCell>
                     </TableRow>
                 </TableHead>
@@ -110,7 +118,8 @@ export default function AutotuneJobResults(props: AutotuneJobResultsProps): Reac
                             </TableCell>
                             <TableCell>{row.currentValue}</TableCell>
                             <TableCell>{row.recommendedValue}</TableCell>
-                            <TableCell>{row.roundedRecommendation}</TableCell>
+                            <TableCell>{row.roundedRecommendation ?? roundToNext(row.recommendedValue, props.result!.options.basalIncrement).toFixed(2)}</TableCell>
+                            {haveBasalSmoothing(props) && <TableCell>{roundToNext(row.postProcessed.get(PostProcessType.SMOOTH) || 0, props.result!.options.basalIncrement).toFixed(2)}</TableCell>}
                             <TableCell>{row.daysMissing}</TableCell>
                         </TableRow>
                     ))}

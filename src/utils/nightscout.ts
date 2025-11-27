@@ -1,4 +1,13 @@
 
+
+export const POST_PROCESSING_REVIVER = (k: any, v: any): any => {
+    if (typeof v === 'object' && v.dt === 'Map') {
+        return new Map(v.v)
+    }
+
+    return v
+}
+
 export type JobStatus = 'submitted' | 'processing' | 'error' | 'success' 
 export type JobId = string
 
@@ -17,6 +26,7 @@ export type AutotuneOptions = {
     readonly autotuneVersion: string
     readonly timeZone: string
     readonly basalIncrement: number
+    readonly basalSmoothing: BasalSmoothing
 }
 
 export enum RecommendationType {
@@ -25,16 +35,28 @@ export enum RecommendationType {
     BASAL = 'BASAL'
 }
 
+export enum BasalSmoothing {
+    NONE = 'none',
+    LOW = 'low',
+    MEDIUM = 'medium',
+    HIGH = 'high'
+}
+
 export type Recommendation = {
     readonly type: RecommendationType
     readonly currentValue: number
     readonly recommendedValue: number
 }
 
+export enum PostProcessType {
+    SMOOTH = 'SMOOTH'
+}
+
 export type BasalRecommendation = Recommendation & {
     when: string
     daysMissing: number
     roundedRecommendation: number
+    postProcessed: Map<PostProcessType, number>
 }
 
 export class AutotuneResult {
@@ -75,6 +97,11 @@ export class AutotuneResult {
     }
 }
 
+export function roundToNext(value: number, increment: number): number {
+    const factor = 1 / increment
+    return parseFloat((Math.ceil(value * factor - 0.5) / factor).toFixed(2))
+}
+
 export async function fetchJobs(): Promise<Array<Job>> {
     const response = await fetch(new URL('job/all', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
         method: 'GET',
@@ -91,6 +118,10 @@ export async function fetchJobResults(id: string): Promise<AutotuneResult | unde
         credentials: 'include'
     })
 
-    const body = await response.json() as { result: AutotuneResult | undefined }
-    return body.result ? new AutotuneResult(body.result.options, body.result.recommendations) : undefined
+    return response
+        .text()
+        .then(body => JSON.parse(body, POST_PROCESSING_REVIVER))
+        .then(jsonBody => {
+            return jsonBody.result ? new AutotuneResult(jsonBody.result.options, jsonBody.result.recommendations) : undefined
+        })
 }
