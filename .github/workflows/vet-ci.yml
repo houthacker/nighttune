@@ -1,10 +1,10 @@
 name: vet OSS Components
 
 on:
+  workflow_dispatch:
+    
   pull_request:
-  push:
-    branches:
-      - main
+    types: [opened, synchronize, reopened]
 
 permissions:
   # Required for actions/checkout@v4
