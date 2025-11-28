@@ -74,8 +74,7 @@ jobs:
     needs: build-and-push-image
     environment: 'production'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
+    permissions: {}
     steps:
       - name: Deploy to production env
         uses: appleboy/ssh-action@v1
