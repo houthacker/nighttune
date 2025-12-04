@@ -8,6 +8,18 @@ export interface ErrorInfo {
     errorText?: string,
 }
 
+export class AlertInfo {
+    public readonly show: boolean
+    public readonly title: string | undefined
+    public readonly description: string | undefined
+
+    constructor(show: boolean, title: string | undefined, description: string | undefined) {
+        this.show = show
+        this.title = title
+        this.description = description
+    }
+}
+
 export enum InsulinType {
     RapidActing = 'rapid-acting',
     UltraRapid = 'ultra-rapid',
