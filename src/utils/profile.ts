@@ -1,8 +1,8 @@
 import { parse as parseTime } from 'date-fns'
-import { InsulinType } from './constants'
+import { AlertInfo, InsulinType } from './constants'
 
 import type { BarSeriesType, LineSeriesType } from '@mui/x-charts'
-import type { ErrorInfo, NightscoutProfile, NightscoutProfileDef, NormalizedTimedValue, OAPSProfile, ScheduleSlot, TimedValue } from './constants'
+import type { NightscoutProfile, NightscoutProfileDef, NormalizedTimedValue, OAPSProfile, ScheduleSlot, TimedValue } from './constants'
 import type { Snapshot, Store } from './localStore.js'
 
 function toNumber(value: string | number): number {
@@ -183,26 +183,21 @@ export function convertNightscoutProfile(
     return sorted_profile as OAPSProfile;
 }
 
-/**
- * 
- * @param {Store} store - Persistent storage for the current client.
- * @param {function(ErrorInfo): void} setErrorInfo - A function to update error information.
- */
-export async function fetchNightscoutProfiles(store: Store, setErrorInfo: (errorInfo: ErrorInfo) => void): Promise<NightscoutProfile | undefined> {
-    const encoder = new TextEncoder();
+export async function fetchNightscoutProfiles(store: Store): Promise<NightscoutProfile> {
+    const encoder = new TextEncoder()
 
-    let snapshot = store.getSnapshot();
+    let snapshot = store.getSnapshot()
     if (snapshot.url) {
-        let url = new URL("api/v1/profile.json", snapshot.url);
+        let url = new URL("api/v1/profile.json", snapshot.url)
 
         if (snapshot.access_token) {
-            const data = encoder.encode(snapshot.access_token);
-            const hash_buffer = await crypto.subtle.digest('SHA-1', data);
-            const hash_array = Array.from(new Uint8Array(hash_buffer));
+            const data = encoder.encode(snapshot.access_token)
+            const hash_buffer = await crypto.subtle.digest('SHA-1', data)
+            const hash_array = Array.from(new Uint8Array(hash_buffer))
             url.searchParams.append('token', hash_array
                 .map((b) => b.toString(16).padStart(2, "0"))
                 .join("")
-            );
+            )
         }
 
         // Retrieve the profile
@@ -210,33 +205,18 @@ export async function fetchNightscoutProfiles(store: Store, setErrorInfo: (error
             let response = await fetch(url);
 
             if (response.ok) {
-                let data = await response.json();
-                setErrorInfo({
-                    isError: false,
-                    errorStep: -1,
-                    errorText: undefined,
-                });
-                return data[0];
+                let data = await response.json()
+                return Promise.resolve(data[0])
             } else {
-                console.error("Error response: ", response);
-                setErrorInfo({
-                    isError: true,
-                    errorStep: 0,
-                    errorText: `HTTP error ${response.status}: ${response.statusText}`,
-                });
+                return Promise.reject(new AlertInfo(true, 'Failed to fetch profile', `HTTP error ${response.status}: ${response.statusText}`))
             }
         } catch (error) {
-            console.error("Network request failed: ", error);
-            setErrorInfo({
-                isError: true,
-                errorStep: 0,
-                errorText: 'Network error',
-            });
+            console.error("Network request failed: ", error)
+            return Promise.reject(new AlertInfo(true, 'Failed to fetch profile', 'Network error'))
         }
     }
 
-    console.warn('Cannot load profiles: Nightscout URL has not been set.');
-    return undefined;
+    return Promise.reject(new AlertInfo(true, 'Cannot load profiles', 'Nightscout URL has not been set.'))
 }
 
 /**
@@ -260,7 +240,6 @@ export function createCrChartSeries(snapshot: Snapshot, setMaxYValue: (value: nu
         }
     }
 
-    
     let series: Array<BarSeriesType | LineSeriesType> = [];
     if (snapshot.conversion_settings.oaps_profile_data?.carb_ratio) {
 

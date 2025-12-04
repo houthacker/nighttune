@@ -67,7 +67,6 @@ function getStepContent(step: number, store: Store, preventNext: Dispatch<SetSta
     case 1:
       return <ProfileDetails 
         store={store} 
-        setErrorInfo={setErrorInfo}
         preventNext={preventNext}
       />;
     case 2:
