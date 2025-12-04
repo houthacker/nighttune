@@ -1,18 +1,18 @@
-import React, { ChangeEvent } from 'react';
+import React, { ChangeEvent } from 'react'
 
-import { Cached, ExpandLess as ExpandLessIcon, ExpandMore as ExpandMoreIcon, WarningAmber as WarningAmberIcon } from '@mui/icons-material';
-import { Box, Button, CircularProgress, Collapse, Divider, Fade, FormControl, Grid, InputAdornment, InputLabel, List, ListItem, ListItemButton, ListItemIcon, ListItemText, MenuItem, Select, TextField, Tooltip, Typography } from '@mui/material';
-import { ErrorInfo, INITIAL_CONVERSION_SETTINGS, InsulinType, isInsulinType, NightscoutProfile, NightscoutProfiles } from '../utils/constants';
-import { fetchNightscoutProfiles } from '../utils/profile';
-import FormGrid from './FormGrid';
-import { ConversionSettings, Snapshot, Store } from '../utils/localStore';
+import { Cached, ExpandLess as ExpandLessIcon, ExpandMore as ExpandMoreIcon, WarningAmber as WarningAmberIcon } from '@mui/icons-material'
+import { Alert, AlertTitle, Box, Button, CircularProgress, Collapse, Divider, Fade, FormControl, Grid, InputAdornment, InputLabel, List, ListItem, ListItemButton, ListItemIcon, ListItemText, MenuItem, Select, TextField, Tooltip, Typography } from '@mui/material'
+import { AlertInfo, INITIAL_CONVERSION_SETTINGS, InsulinType, isInsulinType, NightscoutProfile, NightscoutProfiles } from '../utils/constants'
+import { fetchNightscoutProfiles } from '../utils/profile'
+import FormGrid from './FormGrid'
+import { ConversionSettings, Snapshot, Store } from '../utils/localStore'
 
 export function InfoText() {
-    const [advancedSettingsOpened, openAdvancedSettings] = React.useState(false);
+    const [advancedSettingsOpened, openAdvancedSettings] = React.useState(false)
 
     const onAdvancedClicked = () => {
-        openAdvancedSettings(!advancedSettingsOpened);
-    };
+        openAdvancedSettings(!advancedSettingsOpened)
+    }
 
     return (
         <List sx={{ bgcolor: 'background.paper' }}>
@@ -211,155 +211,189 @@ export function InfoText() {
                 </List>
             </Collapse>
         </List>
-    );
+    )
 }
 
-export default function ProfileDetails({ store, setErrorInfo, preventNext }: 
-    { store: Store, setErrorInfo: (errorInfo: ErrorInfo) => void, preventNext: (prevent_it: boolean) => void}) {
-    const snapshot: Snapshot = React.useSyncExternalStore(store.subscribe, store.getSnapshot);
-    const [advancedSettingsOpened, openAdvancedSettings] = React.useState(false);
-    const [isLoaded, setLoaded] = React.useState(false);
-    const [profiles, setProfiles] = React.useState({store: {}} as { store: NightscoutProfiles });
-    const [defaultProfile, setDefaultProfile] = React.useState('');
-    const [selectedProfile, setSelectedProfile] = React.useState('__default__');
-    const [profileNames, setProfileNames] = React.useState([] as Array<string>);
+const DEFAULT_PROFILES = {store: {}} as { store: NightscoutProfiles } as NightscoutProfile
+
+export default function ProfileDetails({ store, preventNext }: 
+    { store: Store, preventNext: (prevent_it: boolean) => void}) {
+    const snapshot: Snapshot = React.useSyncExternalStore(store.subscribe, store.getSnapshot)
+
+    const [advancedSettingsOpened, openAdvancedSettings] = React.useState(false)
+    const [isLoaded, setLoaded] = React.useState(false)
+    const [profiles, setProfiles] = React.useState(DEFAULT_PROFILES)
+    const [defaultProfile, setDefaultProfile] = React.useState(undefined as undefined | string)
+    const [selectedProfile, setSelectedProfile] = React.useState('__default__')
+    const [profileNames, setProfileNames] = React.useState([] as Array<string>)
+    const [alert, setAlert] = React.useState({
+        show: false,
+        title: undefined as undefined | string,
+        description: undefined as undefined | string,
+    })
     const [conversionSettings, setConversionSettings] = React.useState({
         ...INITIAL_CONVERSION_SETTINGS,
         ... snapshot.conversion_settings
-    } as ConversionSettings);
+    } as ConversionSettings)
 
     // Validation
-    const [invalidFields, setInvalidFields] = React.useState([] as Array<string>);
+    const [invalidFields, setInvalidFields] = React.useState([] as Array<string>)
     const validations = {
         insulin_type: (event: ChangeEvent<HTMLInputElement> | Event & { target: { name: string, value: string}}) => {
             return () => { 
                 if (isInsulinType(event.target.value)) {
-                    setInvalidFields(invalidFields.filter(field => field !== 'insulin_type'));
-                    return true;
+                    setInvalidFields(invalidFields.filter(field => field !== 'insulin_type'))
+                    return true
                 } else {
-                    setInvalidFields([...invalidFields, 'insulin_type']);
+                    setInvalidFields([...invalidFields, 'insulin_type'])
                 }
 
-                return false;
+                return false
             }
         },
         email_address: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> 
             | Event & { target: { name: string, value: string, validity: { valid: boolean}}}) => {
             return () => { 
                 if (!event.target.value || event.target.validity.valid) {
-                    setInvalidFields(invalidFields.filter(field => field !== 'email_address'));
-                    return true;
+                    setInvalidFields(invalidFields.filter(field => field !== 'email_address'))
+                    return true
                 } else {
-                    setInvalidFields([...invalidFields, 'email_address']);
+                    setInvalidFields([...invalidFields, 'email_address'])
                 }
 
-                return false;
+                return false
             }
         }
-    };
+    }
+
+    const setStates = React.useCallback(async (data: NightscoutProfile | undefined) => {
+        if (data) {
+            setProfiles(data)
+            setProfileNames([...Object.keys(data.store)].reverse())
+            setDefaultProfile(data.defaultProfile)
+
+            if (snapshot.conversion_settings.profile_name) {
+                setSelectedProfile(snapshot.conversion_settings.profile_name)
+            }
+
+            setLoaded(true)
+        }
+    }, [snapshot.conversion_settings.profile_name])
     
     // Remove the 'Next >' button if the form is initially invalid.
     React.useEffect(() => {
-        preventNext(selectedProfile === '__default__' || conversionSettings.insulin_type === '__default__' || invalidFields.length > 0);
+        preventNext(selectedProfile === '__default__' || conversionSettings.insulin_type === '__default__' || invalidFields.length > 0)
     })
 
     // Validate the Nightscout URL / token at the backend. 
     // A validated Nightscout site is mandatory to submit an autotune job.
     React.useEffect(() => {
-        async function verify(request: {
+        async function verifyAndFetch(request: {
             nightscout_url: string,
             nightscout_access_token: string | undefined,
         }) {
-            return await fetch(new URL('verify', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
+            const response = await fetch(new URL('verify', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
                 method: 'POST',
                 credentials: 'include',
                 body: JSON.stringify(request, (k, v) => {
                     return v === undefined && k === "nightscout_access_token" ? undefined : v
                 })
             })
+
+            if (!response.ok && !alert.show) {
+                let additionalDescription = ''
+                switch (response.status) {
+                    case 400:
+                        additionalDescription = ': Invalid verification request.'
+                        break
+                    case 407:
+                        additionalDescription = ': Verification failed.'
+                }
+
+                setAlert({
+                    show: true,
+                    title: 'Nightscout verification',
+                    description: `Cannot retrieve profile details from your Nightscout instance using the provided details${additionalDescription}`
+                })
+            } else {
+                setAlert({
+                    show: false,
+                    title: undefined,
+                    description: undefined,
+                })
+
+                if (isLoaded === false) {
+                    fetchNightscoutProfiles(store).then(
+                        setStates,
+                        (alert: AlertInfo) => {
+                            setStates(DEFAULT_PROFILES)
+                            setAlert(alert)
+                        }
+                    )
+                }
+            }
         }
 
-        verify({
+        verifyAndFetch({
             nightscout_url: snapshot.url!,
             nightscout_access_token: snapshot.access_token
         })
-    }, [])
-
-
-    const setStates = React.useCallback(async (data: NightscoutProfile | undefined) => {
-        if (data) {
-            setProfiles(data);
-            setProfileNames([...Object.keys(data.store)].reverse());
-            setDefaultProfile(data.defaultProfile);
-
-            if (snapshot.conversion_settings.profile_name) {
-                setSelectedProfile(snapshot.conversion_settings.profile_name);
-            }
-
-            setLoaded(true);
-        }
-    }, [snapshot.conversion_settings.profile_name]);
-
-    React.useEffect(() => {
-        async function fetchData() {
-            setStates(await fetchNightscoutProfiles(store, setErrorInfo));
-        }
-
-        // Load only once per Nightscout URL, except when the user
-        // forces a reload using the reload button, which sets `isLoaded` to false.
-        if (isLoaded === false) {
-            fetchData();
-        }
-    }, [store, isLoaded, setErrorInfo, setStates]);
+    }, [setAlert])
 
     const onAdvancedClicked = () => {
-        openAdvancedSettings(!advancedSettingsOpened);
-    };
+        openAdvancedSettings(!advancedSettingsOpened)
+    }
 
     const onProfileSelected = (event: ChangeEvent<HTMLInputElement> | Event & { target: { value: string, name: string}}) => {
 
-        let newSettings: ConversionSettings = {...conversionSettings, profile_name: event.target.value, profile_data: profiles.store[event.target.value]};
+        let newSettings: ConversionSettings = {...conversionSettings, profile_name: event.target.value, profile_data: profiles.store[event.target.value]}
 
-        setSelectedProfile(event.target.value);
-        setConversionSettings({...newSettings});
-        store.setConversionSettings({...newSettings});
-    };
+        setSelectedProfile(event.target.value)
+        setConversionSettings({...newSettings})
+        store.setConversionSettings({...newSettings})
+    }
 
     const onReloadButtonClicked = async () => {
         // Cause the spinner to be visible
-        setLoaded(false);
+        setLoaded(false)
 
         // Set the rest of the states to their default values.
-        setProfiles({store: {}});
-        setDefaultProfile('');
-        setSelectedProfile('__default__');
-        setProfileNames([]);
+        setProfiles(DEFAULT_PROFILES)
+        setDefaultProfile('')
+        setSelectedProfile('__default__')
+        setProfileNames([])
 
         // And, to prevent inconsistend stored data: remove the converted profile from storage.
-        let newSettings = {...conversionSettings, oaps_profile_data: undefined};
-        setConversionSettings({...newSettings});
-        store.setConversionSettings({...newSettings});
+        let newSettings = {...conversionSettings, oaps_profile_data: undefined}
+        setConversionSettings({...newSettings})
+        store.setConversionSettings({...newSettings})
 
         // Set states to newly fetched data.
-        setStates(await fetchNightscoutProfiles(store, setErrorInfo));
-    };
+        fetchNightscoutProfiles(store).then(
+            setStates,
+            (alert: AlertInfo) => {
+                setStates(DEFAULT_PROFILES)
+                setAlert(alert)
+            }
+        )
+    }
 
     const onConversionSettingUpdated = (update: { [prop in keyof ConversionSettings]?: ConversionSettings[prop]}, validator?: any) => {
-        let newSettings = {...conversionSettings, ...update};
-        setConversionSettings({...newSettings});
+        let newSettings = {...conversionSettings, ...update}
+        setConversionSettings({...newSettings})
 
         // Only store updates once they're valid. 
         // Current state must always reflect value, regardless of validity.
-        let valid = validator === undefined || validator();
+        let valid = validator === undefined || validator()
         if (valid) {
-            store.setConversionSettings({...newSettings});
+            store.setConversionSettings({...newSettings})
         }
-    };
+    }
     
     return (
         <>
             <Fade
-                in={isLoaded === false}
+                in={alert.show === false && isLoaded === false}
                 style={{
                     transitionDelay: isLoaded ? '0ms' : '800ms',
                 }}
@@ -379,6 +413,25 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }:
                             Retrieving Nightscout profile details...
                         </Typography>
                     </FormGrid>
+                </Grid>
+            </Fade>
+            <Fade
+                in={alert.show}
+                style={{
+                    transitionDelay: alert.show ? '0ms' : '800ms',
+                }}
+                unmountOnExit
+            >
+                <Grid
+                    container
+                    spacing={3}
+                    direction='column'
+                    alignItems='center'
+                >
+                    <Alert severity='error' color='error'>
+                        <AlertTitle>{alert.title}</AlertTitle>
+                        {alert.description}
+                    </Alert>
                 </Grid>
             </Fade>
             <React.Activity mode={isLoaded ? 'visible' : 'hidden'}>
@@ -658,5 +711,5 @@ export default function ProfileDetails({ store, setErrorInfo, preventNext }:
                 </Box>
             </React.Activity>
         </>
-    );
+    )
 }

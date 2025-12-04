@@ -1,12 +1,15 @@
-import React from 'react';
-import { Divider, Grid, FormLabel, List, ListItem, ListItemText, Link, Typography, TextField } from '@mui/material';
-import Turnstile, { useTurnstile } from 'react-turnstile';
+import React from 'react'
+import { Alert, AlertTitle, Divider, Grid, Fade, FormLabel, List, ListItem, ListItemText, Link, Typography, TextField } from '@mui/material'
+import Turnstile, { useTurnstile } from 'react-turnstile'
 
-import FormGrid from './FormGrid';
-import { STORE_EVENT_TYPES } from '../utils/localStore';
+import FormGrid from './FormGrid'
+import { STORE_EVENT_TYPES } from '../utils/localStore'
 
-import type { Snapshot, Store } from '../utils/localStore';
-import type { ChangeEvent, FocusEvent } from 'react';
+import type { Snapshot, Store } from '../utils/localStore'
+import type { ChangeEvent, FocusEvent } from 'react'
+import { AlertInfo } from '../utils/constants'
+
+const DEFAULT_ALERT_SETTINGS = new AlertInfo(false, undefined, undefined)
 
 export function InfoText() {
     return ( 
@@ -55,7 +58,7 @@ export function InfoText() {
                         }}
                         secondary={
                             <Typography variant='body2' sx={{ color: 'text.secondary' }} >
-                                To prevent bots from messing around with this site, you must complete a challenge: click
+                                To prevent bots from messing around with this site, you might have to complete a challenge: click
                                 the checkbox, indicating that you are human. That's it.
                             </Typography>
                         }
@@ -66,64 +69,85 @@ export function InfoText() {
 }
 
 export function NightscoutInstance({ store, preventNext }: { store: Store, preventNext: (value: boolean) => void}) {
-    const snapshot: Snapshot = React.useSyncExternalStore(store.subscribe, store.getSnapshot);
-    const [url, setUrl] = React.useState(snapshot.url);
-    const [turnstileValid, setTurnstileValid] = React.useState(false);
-    const [urlError, setUrlError] = React.useState(false);
-    const [token, setToken] = React.useState(snapshot.access_token);
+    const snapshot: Snapshot = React.useSyncExternalStore(store.subscribe, store.getSnapshot)
+    const [url, setUrl] = React.useState(snapshot.url)
+    const [turnstileValid, setTurnstileValid] = React.useState(false)
+    const [alert, setAlert] = React.useState(new AlertInfo(false, undefined, undefined))
+    const [urlError, setUrlError] = React.useState(false)
+    const [token, setToken] = React.useState(snapshot.access_token)
 
     // With initial values, disable preventNext by validating url.
-    let prevent = true;
+    let prevent = true
     if (url && turnstileValid) {
         try {
-            new URL(url);
-            prevent = false;
+            new URL(url)
+            prevent = false
         } catch {
-            prevent = true;
+            prevent = true
         }
     }
 
     React.useEffect(() => {
-        preventNext(prevent);
+        preventNext(prevent)
     })
 
-    const turnstile = useTurnstile();
+    const turnstile = useTurnstile()
 
     const handleUrlBlur = (event: FocusEvent<HTMLInputElement>) => {
-        setUrl(event.target.value);
-        store.setUrl(event.target.value);
-    };
+        setUrl(event.target.value)
+        store.setUrl(event.target.value)
+    }
 
     const handleTokenBlur = (event: FocusEvent<HTMLInputElement>) => {
-        setToken(event.target.value);
-        store.setToken(event.target.value);
-    };
+        setToken(event.target.value)
+        store.setToken(event.target.value)
+    }
 
     const store_unsubcribe = store.subscribe((event_type) => {
         if (event_type === STORE_EVENT_TYPES.CLEAR) {
-            setUrl('');
-            setToken('');
+            setUrl('')
+            setToken('')
         }
-    });
+    })
 
     const handleUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setUrl(e.target.value);
-        let haveError = !(e.target.value && e.target.validity.valid);
+        setUrl(e.target.value)
+        let haveError = !(e.target.value && e.target.validity.valid)
         
-        setUrlError(haveError);
+        setUrlError(haveError)
         if (haveError) {
-            preventNext(haveError);
+            preventNext(haveError)
         }
     }
 
     // Unsubscribe from store when unmounting
     React.useEffect(() => {
         return () => {
-            store_unsubcribe();
+            store_unsubcribe()
         }
-    });
+    })
 
     return (
+        <>
+        <Fade
+            in={alert.show}
+            style={{
+                transitionDelay: alert.show ? '0ms' : '800ms',
+            }}
+            unmountOnExit
+        >
+            <Grid
+                container
+                spacing={3}
+                direction='column'
+                alignItems='left'
+            >
+                <Alert severity='error' color='error'>
+                    <AlertTitle>{alert.title}</AlertTitle>
+                    {alert.description}
+                </Alert>
+            </Grid>
+        </Fade>
         <Grid container spacing={3}>
             <FormGrid size={{ xs: 21, md: 6}}>
                 <FormLabel htmlFor="ns-url" required>
@@ -161,17 +185,31 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
             <FormGrid size={{ xs: 21, md: 6}}>
                 <Turnstile
                     sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITEKEY!}
-                    onVerify={(token) => {
-                        fetch(new URL('turnstile', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
-                            method: 'POST',
-                            body: JSON.stringify({ token }),
-                            credentials: 'include'
-                        }).then((response) => {
+                    onVerify={async (token) => {
+                        try {
+                            const response = await fetch(new URL('turnstile', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
+                                method: 'POST',
+                                body: JSON.stringify({ token }),
+                                credentials: 'include'
+                            })
+                            
                             if (!response.ok) {
-                                turnstile.reset();
+                                turnstile.reset()
                             }
-                            setTurnstileValid(response.ok === true);
-                        });
+
+                            setTurnstileValid(response.ok)
+                            setAlert(DEFAULT_ALERT_SETTINGS)
+                        } catch (error: any) {
+                            console.error(error)
+                            const msg = typeof error.message === 'string'
+                                ? `Error while verifying you are human: ${error.message}`
+                                : 'Error while verifying you are human.' 
+
+                            setAlert(new AlertInfo(true, 'Turnstile verification', msg))
+
+                            turnstile.reset()
+                            setTurnstileValid(false)
+                        }
                     }}
                     size='flexible'
                     refreshExpired='auto'
@@ -180,5 +218,6 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
                 />
             </FormGrid>
         </Grid>
+        </>
     );
 }
