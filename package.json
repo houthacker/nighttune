@@ -22,7 +22,7 @@
     "date-fns": "^4.1.0",
     "iron-session": "^8.0.4",
     "next": "^16.0.7",
-    "react": "^19.2.0",
+    "react": "^19.2.1",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.10.1",
     "react-turnstile": "^1.1.4"
