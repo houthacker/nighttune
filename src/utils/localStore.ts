@@ -78,7 +78,27 @@ export class Store {
     }
 
     /**
+     * Clears everything from the store, except the Nightscout URL and token.
+     */
+    prune() {
+        const {url, access_token, ..._} = JSON.parse(localStorage.getItem(NS_STORAGE_KEY) || '{}')
+
+        intermediate_store = {...INITIAL_STORE, url, access_token}
+        localStorage.setItem(NS_STORAGE_KEY, JSON.stringify({...intermediate_store}))
+    }
+
+    /**
+     * Return the stored Nightscout instance URL.
+     * @returns The URL or undefined if the URL has not been set.
+     */
+    storedUrl(): string | undefined {
+        return JSON.parse(localStorage.getItem(NS_STORAGE_KEY) || '{}').url
+    }
+
+    /**
      * Set the URL of the Nightscout instance.
+     * This method should only be called when the user has finished updating the URL.
+     * 
      * @param {string} url The Nightscout instance URL.
      */
     setUrl(url: string): void {
