@@ -94,8 +94,25 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
     const turnstile = useTurnstile()
 
     const handleUrlBlur = (event: FocusEvent<HTMLInputElement>) => {
-        setUrl(event.target.value)
-        store.setUrl(event.target.value)
+        const url = event.target.value
+        setUrl(url)
+
+        const storedUrl = store.storedUrl()
+        if (storedUrl && url && storedUrl !== url) {
+            store.prune()
+        }
+
+        store.setUrl(url)
+    }
+
+    const handleUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
+        setUrl(e.target.value)
+        let haveError = !(e.target.value && e.target.validity.valid)
+        
+        setUrlError(haveError)
+        if (haveError) {
+            preventNext(haveError)
+        }
     }
 
     const handleTokenBlur = (event: FocusEvent<HTMLInputElement>) => {
@@ -109,16 +126,6 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
             setToken('')
         }
     })
-
-    const handleUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setUrl(e.target.value)
-        let haveError = !(e.target.value && e.target.validity.valid)
-        
-        setUrlError(haveError)
-        if (haveError) {
-            preventNext(haveError)
-        }
-    }
 
     // Unsubscribe from store when unmounting
     React.useEffect(() => {
