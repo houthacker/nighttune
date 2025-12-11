@@ -5,11 +5,9 @@ exceptions:
     id: d3-array-unmaintained
     name: 'd3-array'
     version: 3.2.4
-    reason: "mui-x-charts has a dependency on this library. It seems unmaintained but it probably is feature complete as well. Re-evaluate mui-x-charts usage after expiration of this exception."
   - ecosystem: npm
     expires: "2026-02-01T00:00:00Z"
     id: internmap-unmaintained
     name: 'internmap'
     version: 2.0.3
-    reason: "mui-x-charts has a dependency on this library. It seems unmaintained but it probably is feature complete as well. Re-evaluate mui-x-charts usage after expiration of this exception."
   
