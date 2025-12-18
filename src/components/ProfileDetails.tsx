@@ -3,7 +3,7 @@ import React, { ChangeEvent } from 'react'
 import { Cached, ExpandLess as ExpandLessIcon, ExpandMore as ExpandMoreIcon, WarningAmber as WarningAmberIcon } from '@mui/icons-material'
 import { Alert, AlertTitle, Box, Button, CircularProgress, Collapse, Divider, Fade, FormControl, Grid, InputAdornment, InputLabel, List, ListItem, ListItemButton, ListItemIcon, ListItemText, MenuItem, Select, TextField, Tooltip, Typography } from '@mui/material'
 import { AlertInfo, INITIAL_CONVERSION_SETTINGS, InsulinType, isInsulinType, NightscoutProfile, NightscoutProfiles } from '../utils/constants'
-import { fetchNightscoutProfiles } from '../utils/profile'
+import { fetchNightscoutProfiles } from '../utils/nightscout'
 import FormGrid from './FormGrid'
 import { ConversionSettings, Snapshot, Store } from '../utils/localStore'
 
@@ -323,7 +323,7 @@ export default function ProfileDetails({ store, preventNext }:
                 })
 
                 if (isLoaded === false) {
-                    fetchNightscoutProfiles(store).then(
+                    fetchNightscoutProfiles().then(
                         setStates,
                         (alert: AlertInfo) => {
                             setStates(DEFAULT_PROFILES)
@@ -369,7 +369,7 @@ export default function ProfileDetails({ store, preventNext }:
         store.setConversionSettings({...newSettings})
 
         // Set states to newly fetched data.
-        fetchNightscoutProfiles(store).then(
+        fetchNightscoutProfiles().then(
             setStates,
             (alert: AlertInfo) => {
                 setStates(DEFAULT_PROFILES)
