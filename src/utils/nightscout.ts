@@ -1,4 +1,5 @@
-
+import { AlertInfo, NightscoutProfile } from './constants'
+import { Store } from './localStore'
 
 export const POST_PROCESSING_REVIVER = (k: any, v: any): any => {
     if (typeof v === 'object' && v.dt === 'Map') {
@@ -100,6 +101,24 @@ export class AutotuneResult {
 export function roundToNext(value: number, increment: number): number {
     const factor = 1 / increment
     return parseFloat((Math.ceil(value * factor - 0.5) / factor).toFixed(2))
+}
+
+export async function fetchNightscoutProfiles(): Promise<NightscoutProfile> {
+    try {
+        const response = await fetch(new URL('profile/all', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
+            method: 'GET',
+            credentials: 'include',
+        })
+
+        if (response.ok) {
+            return Promise.resolve(await response.json())
+        } else {
+            return Promise.reject(new AlertInfo(true, 'Failed to fetch profile', `HTTP error ${response.status}: ${response.statusText}`))
+        }
+    } catch (error) {
+        console.error("Network request failed: ", error)
+        return Promise.reject(new AlertInfo(true, 'Failed to fetch profile', 'Network error'))
+    }
 }
 
 export async function fetchJobs(): Promise<Array<Job>> {

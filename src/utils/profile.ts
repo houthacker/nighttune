@@ -183,42 +183,6 @@ export function convertNightscoutProfile(
     return sorted_profile as OAPSProfile;
 }
 
-export async function fetchNightscoutProfiles(store: Store): Promise<NightscoutProfile> {
-    const encoder = new TextEncoder()
-
-    let snapshot = store.getSnapshot()
-    if (snapshot.url) {
-        let url = new URL("api/v1/profile.json", snapshot.url)
-
-        if (snapshot.access_token) {
-            const data = encoder.encode(snapshot.access_token)
-            const hash_buffer = await crypto.subtle.digest('SHA-1', data)
-            const hash_array = Array.from(new Uint8Array(hash_buffer))
-            url.searchParams.append('token', hash_array
-                .map((b) => b.toString(16).padStart(2, "0"))
-                .join("")
-            )
-        }
-
-        // Retrieve the profile
-        try {
-            let response = await fetch(url);
-
-            if (response.ok) {
-                let data = await response.json()
-                return Promise.resolve(data[0])
-            } else {
-                return Promise.reject(new AlertInfo(true, 'Failed to fetch profile', `HTTP error ${response.status}: ${response.statusText}`))
-            }
-        } catch (error) {
-            console.error("Network request failed: ", error)
-            return Promise.reject(new AlertInfo(true, 'Failed to fetch profile', 'Network error'))
-        }
-    }
-
-    return Promise.reject(new AlertInfo(true, 'Cannot load profiles', 'Nightscout URL has not been set.'))
-}
-
 /**
  * Creates a series object that is accepted by a `ChartContainer` consisting of 
  * the Carb Ratio settings from Nightscout profile plotted against the weighted average.
