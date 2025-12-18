@@ -23,13 +23,13 @@
     "iron-session": "^8.0.4",
     "next": "^16.0.10",
     "react": "^19.2.1",
-    "react-dom": "^19.2.1",
+    "react-dom": "^19.2.3",
     "react-router-dom": "^7.10.1",
     "react-turnstile": "^1.1.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
-    "@types/node": "^25.0.0",
+    "@types/node": "^25.0.2",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.2",
