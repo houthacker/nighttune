@@ -1,5 +1,6 @@
 
 import type { InsulinType, OAPSProfile, NightscoutProfileDef } from './constants'
+import { getMigrations } from './migrations';
 import { BasalSmoothing } from './nightscout'
 
 // Storage key for Nightscout instance data.
@@ -17,12 +18,7 @@ export const STORE_EVENT_TYPES = {
     CLEAR: 'clear',
 };
 
-const INITIAL_STORE: Snapshot = {
-    profiles: {
-        store: {}
-    },
-    conversion_settings: {},
-}
+const INITIAL_STORE = '{"profiles":{"store":{}},"conversion_settings":{}}'
 
 export interface Profiles {
     store: object;
@@ -45,13 +41,14 @@ export interface ConversionSettings {
 }
 
 export interface Snapshot {
+    version?: string
     url?: string
     access_token?: string
     profiles: Profiles
     conversion_settings: ConversionSettings
 }
 
-let intermediate_store: Snapshot = {...INITIAL_STORE};
+let intermediate_store: Snapshot = JSON.parse(INITIAL_STORE)
 
 function emitChange(event_type: string) {
     for (let listener of listeners) {
@@ -61,17 +58,45 @@ function emitChange(event_type: string) {
 
 export class Store {
 
+    private migrate(fromVersion: string) {
+        const migrations = getMigrations(fromVersion , process.env.NEXT_PUBLIC_NT_VERSION!)
+
+        if (migrations.length > 0) {
+            let snapshot = this.getSnapshot()
+
+            for (const migration of migrations) {
+                let copy = {...snapshot}
+                try {
+                    migration.execute(snapshot)
+                } catch (error: any) {
+                    snapshot = copy
+                    throw error
+                }
+            }
+
+            intermediate_store = {...snapshot}
+            localStorage.setItem(NS_STORAGE_KEY, JSON.stringify({...intermediate_store}))
+        }
+    }
+
     init() {
-        if (JSON.stringify(intermediate_store) === JSON.stringify(INITIAL_STORE)) {
-            const item = localStorage.getItem(NS_STORAGE_KEY);
-            const data = item ? JSON.parse(item) as Snapshot : {...INITIAL_STORE};
-            intermediate_store = {...data};
+        if (JSON.stringify(intermediate_store) === INITIAL_STORE) {
+            const item = localStorage.getItem(NS_STORAGE_KEY)
+            const data = item ? JSON.parse(item) as Snapshot : JSON.parse(INITIAL_STORE)
+            intermediate_store = {...data}
+        }
+
+        try {
+            this.migrate(intermediate_store.version || '0.0.1')
+        } catch (error: any) {
+            console.warn('Migrating local data failed. Pruning local data to force migration.', error)
+            this.prune()
         }
     }
 
     clear() {
         localStorage.removeItem(NS_STORAGE_KEY);
-        intermediate_store = {...INITIAL_STORE}
+        intermediate_store = JSON.parse(INITIAL_STORE)
 
         emitChange(STORE_EVENT_TYPES.CLEAR);
     }
@@ -82,7 +107,8 @@ export class Store {
     prune() {
         const {url, access_token, ..._} = JSON.parse(localStorage.getItem(NS_STORAGE_KEY) || '{}')
 
-        intermediate_store = {...INITIAL_STORE, url, access_token}
+        intermediate_store = {...JSON.parse(INITIAL_STORE), url, access_token}
+        console.log('setting intermediate store', INITIAL_STORE)
         localStorage.setItem(NS_STORAGE_KEY, JSON.stringify({...intermediate_store}))
     }
 
