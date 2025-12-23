@@ -18,7 +18,7 @@ export interface Migration {
 
 const migrations: Migration[] = [
     {
-        version: '1.4.1',
+        version: '1.5.0',
         execute(snapshot: Snapshot) {
             snapshot.version = this.version
 
