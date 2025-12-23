@@ -3,13 +3,13 @@ import { BarPlot, ChartContainer, ChartsAxisHighlight, ChartsTooltip, ChartsXAxi
 import { format } from 'date-fns';
 import React from 'react';
 
-import { convertNightscoutProfile, createCrChartSeries, createISFChartSeries } from '../utils/profile';
+import { convertNightscoutProfile, createCrChartSeries, createISFChartSeries, isSmoothingAvailable } from '../utils/profile';
 import FormGrid from './FormGrid';
 
-import type { ChangeEvent, FocusEvent, ReactElement } from 'react';
 import type { BarSeriesType, ChartsAxisData, LineSeriesType } from '@mui/x-charts';
-import type { Snapshot, Store } from '../utils/localStore';
+import type { ChangeEvent, FocusEvent, ReactElement } from 'react';
 import { OAPSProfile } from '../utils/constants';
+import type { Snapshot, Store } from '../utils/localStore';
 import { BasalSmoothing } from '../utils/nightscout';
 
 export function InfoText() {
@@ -129,7 +129,8 @@ export default function ProfileConversion({ store }: { store: Store }): ReactEle
     const [selectedISF, setSelectedISF] = React.useState(0);
     const originalWeightedAvgISF = React.useRef(0);
 
-    // Basal smoothing intensity
+    // Basal smoothing availability and state
+    const smoothingAvailable = isSmoothingAvailable(snapshot)
     const [basalSmoothing, setBasalSmoothing] = React.useState(BasalSmoothing.NONE)
 
     React.useEffect(() => {
@@ -156,6 +157,24 @@ export default function ProfileConversion({ store }: { store: Store }): ReactEle
             setIsConverting(false);
         }
     }, [ store, snapshot, setSelectedCarbRatio, originalWeightedAvgCr ]);
+
+    // Initialize smoothing settings
+    React.useEffect(() => {
+        if (snapshot.conversion_settings.basal_smoothing) {
+            setBasalSmoothing(snapshot.conversion_settings.basal_smoothing)
+        }
+    })
+
+    const onBasalSmoothingUpdated = (event: ChangeEvent<HTMLInputElement> | Event & { target: { value: string, name: string}}) => {
+        const value = event.target.value as BasalSmoothing
+
+        // Store selected smoothing intensity in conversion settings.
+        let update = {...snapshot.conversion_settings}
+        update.basal_smoothing = value
+
+        store.setConversionSettings(update)
+        setBasalSmoothing(value)
+    }
 
     // Set CR series data
     React.useEffect(() => {
@@ -219,24 +238,6 @@ export default function ProfileConversion({ store }: { store: Store }): ReactEle
 
         store.setConversionSettings(update);
         setSelectedISF(isf);
-    }
-
-    // Set previously selected basal smoothing intensity on page load
-    React.useEffect(() => {
-        if (snapshot.conversion_settings.basal_smoothing) {
-            setBasalSmoothing(snapshot.conversion_settings.basal_smoothing)
-        }
-    })
-
-    const onBasalSmoothingUpdated = (event: ChangeEvent<HTMLInputElement> | Event & { target: { value: string, name: string}}) => {
-        const value = event.target.value as BasalSmoothing
-
-        // Store selected smoothing intensity in conversion settings.
-        let update = {...snapshot.conversion_settings}
-        update.basal_smoothing = value
-
-        store.setConversionSettings(update)
-        setBasalSmoothing(value)
     }
 
     return (
@@ -521,7 +522,10 @@ export default function ProfileConversion({ store }: { store: Store }): ReactEle
                         </Typography>
                         <Divider key='basal-smoothing-divider' sx={{ opacity: 0.6 }} />
                         <Typography variant='body2'>
-                                If you want to smooth the basal values, select the desired intensity below.
+                                {smoothingAvailable
+                                    ? "If you want to smooth the basal values, select the desired intensity below." 
+                                    : "Smoothing unavailable because your profile doesn't have enough basal values."}
+                                
                         </Typography>
                         <List dense={true} disablePadding={true} sx={{ width: '100%'}}>
                             <ListItem key='li-smoothing-intensity' divider={true}>
@@ -533,6 +537,7 @@ export default function ProfileConversion({ store }: { store: Store }): ReactEle
                                         required
                                         value={basalSmoothing}
                                         onChange={e => {onBasalSmoothingUpdated(e)}} 
+                                        disabled={!smoothingAvailable}
                                     >
                                         <MenuItem selected={true} value={BasalSmoothing.NONE}>No smoothing</MenuItem>
                                         <MenuItem value={BasalSmoothing.LOW}>Low</MenuItem>

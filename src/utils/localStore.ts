@@ -1,6 +1,6 @@
 
-import type { InsulinType, OAPSProfile, NightscoutProfileDef } from './constants';
-import { BasalSmoothing } from './nightscout';
+import type { InsulinType, OAPSProfile, NightscoutProfileDef } from './constants'
+import { BasalSmoothing } from './nightscout'
 
 // Storage key for Nightscout instance data.
 const NS_STORAGE_KEY = 'ns-instance';
@@ -45,10 +45,10 @@ export interface ConversionSettings {
 }
 
 export interface Snapshot {
-    url?: string;
-    access_token?: string;
-    profiles: Profiles;
-    conversion_settings: ConversionSettings;
+    url?: string
+    access_token?: string
+    profiles: Profiles
+    conversion_settings: ConversionSettings
 }
 
 let intermediate_store: Snapshot = {...INITIAL_STORE};
@@ -58,7 +58,6 @@ function emitChange(event_type: string) {
         listener(event_type);
     }
 }
-
 
 export class Store {
 
