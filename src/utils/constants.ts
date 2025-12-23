@@ -1,4 +1,6 @@
 
+export const SMOOTHING_MIN_BASAL_ELEMENTS: number = 5
+
 export interface ErrorInfo {
 
     isError: boolean,

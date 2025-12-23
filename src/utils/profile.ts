@@ -1,9 +1,9 @@
 import { parse as parseTime } from 'date-fns'
-import { AlertInfo, InsulinType } from './constants'
+import { InsulinType, SMOOTHING_MIN_BASAL_ELEMENTS } from './constants'
 
 import type { BarSeriesType, LineSeriesType } from '@mui/x-charts'
-import type { NightscoutProfile, NightscoutProfileDef, NormalizedTimedValue, OAPSProfile, ScheduleSlot, TimedValue } from './constants'
-import type { Snapshot, Store } from './localStore.js'
+import type { NightscoutProfileDef, NormalizedTimedValue, OAPSProfile, ScheduleSlot, TimedValue } from './constants'
+import type { Snapshot } from './localStore.js'
 
 function toNumber(value: string | number): number {
     if (typeof value === 'number') {
@@ -290,4 +290,8 @@ export function createISFChartSeries(snapshot: Snapshot, setMaxYValue: (value: n
     }
 
     return series;
+}
+
+export function isSmoothingAvailable(snapshot: Snapshot): boolean {
+    return (snapshot.conversion_settings.oaps_profile_data?.basalprofile.length || 0) >= SMOOTHING_MIN_BASAL_ELEMENTS
 }
