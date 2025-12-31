@@ -46,7 +46,7 @@ jobs:
       - name: Create .env file
         run: |
           echo "NEXT_PUBLIC_BACKEND_BASE_URL=${{ secrets.BACKEND_BASE_URL }}" > .env.production
-          echo "NEXT_PUBLIC_TURNSTILE_SITEKEY=${{ secrets.TURNSTILE_SITE_KEY }}" >> .env.production
+          echo "NEXT_PUBLIC_CAPTCHA_SITEKEY=${{ secrets.CAPTCHA_SITEKEY }}" >> .env.production
           echo "NEXT_PUBLIC_NT_VERSION=${GITHUB_REF#refs/tags/}" >> .env.production
           echo "NEXT_PUBLIC_NT_BUGS_OVERVIEW=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/issues?q=is%3Aissue+state%3Aopen+label%3Abug"
 
