@@ -1,13 +1,13 @@
+import { CapWidget, type CapWidgetHandle } from "@better-captcha/react/provider/cap-widget"
+import { Alert, AlertTitle, Divider, Fade, FormLabel, Grid, Link, List, ListItem, ListItemText, TextField, Typography } from '@mui/material'
 import React from 'react'
-import { Alert, AlertTitle, Divider, Grid, Fade, FormLabel, List, ListItem, ListItemText, Link, Typography, TextField } from '@mui/material'
-import Turnstile, { useTurnstile } from 'react-turnstile'
 
-import FormGrid from './FormGrid'
 import { STORE_EVENT_TYPES } from '../utils/localStore'
+import FormGrid from './FormGrid'
 
-import type { Snapshot, Store } from '../utils/localStore'
 import type { ChangeEvent, FocusEvent } from 'react'
 import { AlertInfo } from '../utils/constants'
+import type { Snapshot, Store } from '../utils/localStore'
 
 const DEFAULT_ALERT_SETTINGS = new AlertInfo(false, undefined, undefined)
 
@@ -70,15 +70,17 @@ export function InfoText() {
 
 export function NightscoutInstance({ store, preventNext }: { store: Store, preventNext: (value: boolean) => void}) {
     const snapshot: Snapshot = React.useSyncExternalStore(store.subscribe, store.getSnapshot)
+    const captchaRef = React.useRef<CapWidgetHandle>(null)
+    
     const [url, setUrl] = React.useState(snapshot.url)
-    const [turnstileValid, setTurnstileValid] = React.useState(false)
+    const [captchaValid, setCaptchaValid] = React.useState(false)
     const [alert, setAlert] = React.useState(new AlertInfo(false, undefined, undefined))
     const [urlError, setUrlError] = React.useState(false)
     const [token, setToken] = React.useState(snapshot.access_token)
 
     // With initial values, disable preventNext by validating url.
     let prevent = true
-    if (url && turnstileValid) {
+    if (url && captchaValid) {
         try {
             new URL(url)
             prevent = false
@@ -90,8 +92,6 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
     React.useEffect(() => {
         preventNext(prevent)
     })
-
-    const turnstile = useTurnstile()
 
     const handleUrlBlur = (event: FocusEvent<HTMLInputElement>) => {
         const url = event.target.value
@@ -190,38 +190,30 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
             </FormGrid>
             <Divider sx={{ width: '100%' }} />
             <FormGrid size={{ xs: 21, md: 6}}>
-                <Turnstile
-                    sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITEKEY!}
-                    onVerify={async (token) => {
-                        try {
-                            const response = await fetch(new URL('turnstile', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
-                                method: 'POST',
-                                body: JSON.stringify({ token }),
-                                credentials: 'include'
-                            })
-                            
-                            if (!response.ok) {
-                                turnstile.reset()
-                            }
-
-                            setTurnstileValid(response.ok)
-                            setAlert(DEFAULT_ALERT_SETTINGS)
-                        } catch (error: any) {
-                            console.error(error)
-                            const msg = typeof error.message === 'string'
-                                ? `Error while verifying you are human: ${error.message}`
-                                : 'Error while verifying you are human.' 
-
-                            setAlert(new AlertInfo(true, 'Turnstile verification', msg))
-
-                            turnstile.reset()
-                            setTurnstileValid(false)
-                        }
+                <CapWidget 
+                    ref={captchaRef}
+                    endpoint={`https://captcha.nighttune.app/${encodeURIComponent(process.env.NEXT_PUBLIC_CAPTCHA_SITEKEY!)}/`}
+                    onError={(error) => {
+                        console.error(error)
+                        setAlert(new AlertInfo(true, 'Captcha verification', 'Captcha verification failed'))
+                        captchaRef.current?.reset()
                     }}
-                    size='flexible'
-                    refreshExpired='auto'
-                    appearance='interaction-only'
-                    theme='auto'
+                    onSolve={async (token) => {
+                        const response = await fetch(new URL('captcha', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
+                            method: 'POST',
+                            body: JSON.stringify({ token }),
+                            credentials: 'include'
+                        })
+
+                        if (!response.ok) {
+                            console.error('Captcha site verification failed')
+                            setAlert(new AlertInfo(true, 'Captcha verification', 'Captcha verification failed'))
+                            captchaRef.current?.reset()
+                        }
+
+                        setCaptchaValid(response.ok)
+                        setAlert(DEFAULT_ALERT_SETTINGS)
+                    }}
                 />
             </FormGrid>
         </Grid>
