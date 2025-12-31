@@ -1,7 +1,7 @@
 
-import type { InsulinType, OAPSProfile, NightscoutProfileDef } from './constants'
+import type { InsulinType, NightscoutProfileDef, OAPSProfile } from './constants';
 import { getMigrations } from './migrations';
-import { BasalSmoothing } from './nightscout'
+import { BasalSmoothing } from './nightscout';
 
 // Storage key for Nightscout instance data.
 const NS_STORAGE_KEY = 'ns-instance';
@@ -24,12 +24,12 @@ export interface Profiles {
     store: object;
 }
 
-
 export interface ConversionSettings {
     profile_name?: string
     min_5m_carbimpact?: number
     pump_basal_increment?: number
     uam_as_basal?: boolean
+    force_hourly_basal?: boolean
     insulin_type?: InsulinType
     autotune_days?: number
     email_address?: string

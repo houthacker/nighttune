@@ -3,9 +3,9 @@ import React, { ChangeEvent } from 'react'
 import { Cached, ExpandLess as ExpandLessIcon, ExpandMore as ExpandMoreIcon, WarningAmber as WarningAmberIcon } from '@mui/icons-material'
 import { Alert, AlertTitle, Box, Button, CircularProgress, Collapse, Divider, Fade, FormControl, Grid, InputAdornment, InputLabel, List, ListItem, ListItemButton, ListItemIcon, ListItemText, MenuItem, Select, TextField, Tooltip, Typography } from '@mui/material'
 import { AlertInfo, INITIAL_CONVERSION_SETTINGS, InsulinType, isInsulinType, NightscoutProfile, NightscoutProfiles } from '../utils/constants'
+import { ConversionSettings, Snapshot, Store } from '../utils/localStore'
 import { fetchNightscoutProfiles } from '../utils/nightscout'
 import FormGrid from './FormGrid'
-import { ConversionSettings, Snapshot, Store } from '../utils/localStore'
 
 export function InfoText() {
     const [advancedSettingsOpened, openAdvancedSettings] = React.useState(false)
@@ -124,6 +124,33 @@ export function InfoText() {
                             <em>Note:</em> if you have at least one hour of carbs absorption detected
                             during one day, then all data categorized as UAM will be categorized as basal,
                             regardless of this setting.
+                        </Typography>
+                    }
+                />
+            </ListItem>
+            <ListItem alignItems='flex-start'>
+                <ListItemText 
+                    primary="Force hourly basal suggestions"
+                    slotProps={{
+                        primary: { color: 'text.primary' }
+                    }}
+                    secondary={
+                        <Typography variant='body2' sx={{ color: 'text.secondary' }} >
+                            If your profile has basal entries of longer than one hour, you could use
+                            hourly basal suggestions to help determine if and when to add a new 
+                            basal time.<br /><br />
+                            When forcing hourly basal suggestions, your profile is converted 
+                            such that longer basal blocks are split up in hourly blocks of the same
+                            value of the larger block. <br />
+                            Example: a basal block from <code>00:00 - 03:00</code> with a value 
+                            of <code>0.82 IE</code> will be converted to:<br />
+                            <code>
+                                Time                IE<br />
+                                00:00 - 01:00       0.82<br />
+                                01:00 - 02:00       0.82<br />
+                                02:00 - 03:00       0.82<br />
+                                ...
+                            </code>
                         </Typography>
                     }
                 />
@@ -622,7 +649,27 @@ export default function ProfileDetails({ store, preventNext }:
                                     }}
                                 >Categorize UAM as basal</InputLabel>
                             </Grid>
-
+                        </ListItem>
+                        <ListItem key='li-force-hourly-basal' divider={true}>
+                            <Grid container spacing={2}>
+                                <input 
+                                    id='force-hourly-basal'
+                                    type='checkbox'
+                                    defaultChecked={false}
+                                    onChange={e => onConversionSettingUpdated({force_hourly_basal: e.target.checked})}
+                                    style={{
+                                        marginLeft: '10px'
+                                    }}
+                                />
+                                <InputLabel
+                                    id='lbl-force-hourly-basal'
+                                    htmlFor='force-hourly-basal'
+                                    sx={{
+                                        marginTop: '5px',
+                                        color: 'text.primary'
+                                    }}
+                                >Force hourly basal suggestions</InputLabel>
+                            </Grid>
                         </ListItem>
                         <ListItem key='li-email-address' divider={true}>
                             <Grid container spacing={2}>

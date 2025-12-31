@@ -14,6 +14,13 @@ function toNumber(value: string | number): number {
     return Number(value)
 }
 
+function toHourString(timeAsSeconds: number): string {
+    const hours = timeAsSeconds / 3600
+    const minutes = timeAsSeconds % 60
+
+    return String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0')
+}
+
 function normalizeNightscoutTimedElement(element: TimedValue): NormalizedTimedValue {
     let time = {...element}
     if(time.timeAsSeconds === undefined) {
@@ -24,9 +31,7 @@ function normalizeNightscoutTimedElement(element: TimedValue): NormalizedTimedVa
         }
     }
     if(time.time === undefined) {
-        let hours = time.timeAsSeconds / 3600
-        let minutes = time.timeAsSeconds % 60
-        time.time = String(hours).padStart(2, '0') + ":" + String(minutes).padStart(2, '0')
+        time.time = toHourString(time.timeAsSeconds)
     }
 
     return {
@@ -58,6 +63,37 @@ function calculateWeightedAverage(elements: TimedValue[]): number {
 }
 
 /**
+ export interface TimedValue {
+
+    /**
+     * The time of day represented in seconds, e.g. `14400` for `04:00`.
+     *
+    timeAsSeconds: number;
+
+    /**
+     * The time of day in a `%H:%M` representation, e.g. `14:00`.
+     *
+    time: string;
+
+    /**
+     * The value to average.
+     *
+    value: number;
+
+    /**
+     * The time of day represented in minutes, e.g. `240` for `04:00`.
+     *
+    minutes?: number;
+
+    /**
+     * The time of day in a `%H:%M:%S` representation, e.g. `14:00:00`.
+     *
+    start?: string;
+}
+ */
+
+
+/**
  * Converts the given `ns_profile` to an OAPS profile, analog to the OAPS python implementation.
  * 
  * @see https://github.com/openaps/oref0/blob/v0.7.1/bin/get_profile.py
@@ -67,7 +103,26 @@ export function convertNightscoutProfile(
     min_5m_carbimpact = 8.0, 
     autosens_min = 0.7, 
     autosens_max = 1.2, 
-    curve = InsulinType.RapidActing): OAPSProfile {
+    curve = InsulinType.RapidActing,
+    force_hourly_basal = false): OAPSProfile {
+
+    function* forceHourly(elements: TimedValue[]): Generator<TimedValue> {
+        let maxTimeAsSeconds = 86400;
+        for (const [idx, element] of elements.entries()) {
+            let nextTimeAsSeconds = elements.length === idx + 1 ? maxTimeAsSeconds : elements[idx + 1].timeAsSeconds;
+            let elementHours = (nextTimeAsSeconds - element.timeAsSeconds) / 3600;
+            
+            for(let i=0; i < elementHours; i++) {
+                const timeAsSeconds = element.timeAsSeconds + (i * 3600)
+
+                yield {
+                    time: toHourString(timeAsSeconds),
+                    timeAsSeconds,
+                    value: element.value,
+                } as TimedValue
+            }
+        }
+    }
 
     let oaps_profile: OAPSProfile = {
         min_5m_carbimpact: min_5m_carbimpact,
@@ -93,22 +148,23 @@ export function convertNightscoutProfile(
             first: 1,
             sensitivities: [],
         }
-    };
+    }
 
-    // Basal profile
-    for(const [_, basal_item] of Object.entries(ns_profile.basal)) {
+    // Basal profile. Convert to 24h values if required.
+    const basal_entries = force_hourly_basal === true ? [...forceHourly(ns_profile.basal)] : ns_profile.basal
+    for(const [_, basal_item] of Object.entries(basal_entries)) {
         oaps_profile.basalprofile.push({
             i: oaps_profile.basalprofile.length,
             ...normalizeNightscoutTimedElement(basal_item),
             rate: toNumber(basal_item.value)
-        });
+        })
     }
 
     // BG targets
     let targets: {[key: string]: {
         low: ScheduleSlot & {low: number},
         high: { high: number }
-    } } = {};
+    } } = {}
 
     // Extract low targets
     for(const [_, low] of Object.entries(ns_profile.target_low)) {
@@ -119,7 +175,7 @@ export function convertNightscoutProfile(
             start: normalized.start,
             offset: normalized.timeAsSeconds,
             low: normalized.value
-        };
+        }
     }
 
     // Extract high targets
@@ -128,7 +184,7 @@ export function convertNightscoutProfile(
         targets[normalized.time] = targets[normalized.time] || {};
         targets[normalized.time].high = {
             high: normalized.value
-        };
+        }
     }
 
     // Append targets to profile
@@ -142,7 +198,7 @@ export function convertNightscoutProfile(
             min_bg: ttime.low.low,
             high: ttime.high.high,
             max_bg: ttime.high.high
-        });
+        })
     }
 
     // Insulin sensitivity profile.
@@ -157,7 +213,7 @@ export function convertNightscoutProfile(
         start: "00:00:00",
         offset: 0,
         sensitivity: calculateWeightedAverage(ns_profile.sens),
-    });
+    })
 
     // Carb ratio(s).
     // Autotune only uses the first ISF value from the OpenAPS profile.
@@ -172,7 +228,7 @@ export function convertNightscoutProfile(
         offset: 0,
         ratio: oaps_profile.carb_ratio,
         start: "00:00:00",
-    });
+    })
 
     // Sort profile by keys
     let sorted_profile: any = {}
@@ -191,7 +247,6 @@ export function convertNightscoutProfile(
  * @param {function(float): void} setMaxYValue - A setter function for the maximum y-axis value of the containing graph.
  */
 export function createCrChartSeries(snapshot: Snapshot, setMaxYValue: (value: number) => void) {
-    
     function* mapSeriesToDiscreteHours(elements: TimedValue[]) {
         let maxTimeAsSeconds = 86400;
         for (const [idx, element] of elements.entries()) {
