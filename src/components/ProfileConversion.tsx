@@ -141,7 +141,8 @@ export default function ProfileConversion({ store }: { store: Store }): ReactEle
                 snapshot.conversion_settings.min_5m_carbimpact,
                 snapshot.conversion_settings.autosens_min,
                 snapshot.conversion_settings.autosens_max,
-                snapshot.conversion_settings.insulin_type
+                snapshot.conversion_settings.insulin_type,
+                snapshot.conversion_settings.force_hourly_basal
             );
             
             setOapsProfile(convertedProfile);
