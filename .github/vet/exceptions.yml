@@ -10,4 +10,19 @@ exceptions:
     id: internmap-unmaintained
     name: 'internmap'
     version: 2.0.3
+  - ecosystem: npm
+    expires: "2027-01-01T00:00:00Z"
+    id: react-side-effect-unmaintained
+    name: 'react-side-effect'
+    version: 2.1.2
+  - ecosystem: npm
+    expires: "2027-01-01T00:00:00Z"
+    id: react-helmet-unmaintained
+    name: 'react-helmet'
+    version: 6.1.0
+  - ecosystem: npm
+    expires: "2027-01-01T00:00:00Z"
+    id: react-fast-compare-unmaintained
+    name: 'react-fast-compare'
+    version: 3.2.2
   
