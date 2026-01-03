@@ -1,6 +1,9 @@
 import { CapWidget, type CapWidgetHandle } from "@better-captcha/react/provider/cap-widget"
-import { Alert, AlertTitle, Divider, Fade, FormLabel, Grid, Link, List, ListItem, ListItemText, TextField, Typography } from '@mui/material'
 import React from 'react'
+import { Helmet } from 'react-helmet'
+
+import { Alert, AlertTitle, Divider, Fade, FormLabel, Grid, Link, List, ListItem, ListItemText, TextField, Typography } from '@mui/material'
+
 
 import { STORE_EVENT_TYPES } from '../utils/localStore'
 import FormGrid from './FormGrid'
@@ -13,6 +16,11 @@ const DEFAULT_ALERT_SETTINGS = new AlertInfo(false, undefined, undefined)
 
 export function InfoText() {
     return ( 
+        <>
+            <Helmet>
+                <meta name="description" content="Nighttune provides a simple way to run OpenAPS Autotune against Nightscout profiles." />
+                <meta property="og:description" content="Nighttune provides a simple way to run OpenAPS Autotune against Nightscout profiles." />
+            </Helmet>
             <List sx={{ bgcolor: 'background.paper' }}>
                 <ListItem alignItems="flex-start">
                     <ListItemText
@@ -65,6 +73,7 @@ export function InfoText() {
                     />
                 </ListItem>
             </List>
+        </>
     );
 }
 

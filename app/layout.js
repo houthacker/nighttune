@@ -1,7 +1,7 @@
 import '../src/index.css'
 
 export const metadata = {
-    title: 'nighttune',
+    title: 'Nighttune',
 }
 
 export default function RootLayout({ children }) {
