@@ -253,11 +253,7 @@ export default function ProfileDetails({ store, preventNext }:
     const [defaultProfile, setDefaultProfile] = React.useState(undefined as undefined | string)
     const [selectedProfile, setSelectedProfile] = React.useState('__default__')
     const [profileNames, setProfileNames] = React.useState([] as Array<string>)
-    const [alert, setAlert] = React.useState({
-        show: false,
-        title: undefined as undefined | string,
-        description: undefined as undefined | string,
-    })
+    const [alert, setAlert] = React.useState(new AlertInfo(false, undefined, undefined))
     const [conversionSettings, setConversionSettings] = React.useState({
         ...INITIAL_CONVERSION_SETTINGS,
         ... snapshot.conversion_settings
@@ -512,7 +508,7 @@ export default function ProfileDetails({ store, preventNext }:
                                 </Grid>
                             </ListItem>
                             <ListItem key='units' divider={true}>
-                                <Grid container spacing={2}>
+                                <Grid container spacing={11}>
                                     <Grid size={3}>
                                         <ListItemText primary="Units" secondary={profile.units} />
                                     </Grid>
