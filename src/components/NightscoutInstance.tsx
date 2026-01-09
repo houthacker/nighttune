@@ -4,7 +4,6 @@ import { Helmet } from 'react-helmet'
 
 import { Alert, AlertTitle, Divider, Fade, FormLabel, Grid, Link, List, ListItem, ListItemText, TextField, Typography } from '@mui/material'
 
-
 import { STORE_EVENT_TYPES } from '../utils/localStore'
 import FormGrid from './FormGrid'
 
@@ -79,11 +78,11 @@ export function InfoText() {
 
 export function NightscoutInstance({ store, preventNext }: { store: Store, preventNext: (value: boolean) => void}) {
     const snapshot: Snapshot = React.useSyncExternalStore(store.subscribe, store.getSnapshot)
-    const captchaRef = React.useRef<CapWidgetHandle>(null)
+    const captchaRef = React.useRef<CapWidgetHandle | null>(null)
     
     const [url, setUrl] = React.useState(snapshot.url)
     const [captchaValid, setCaptchaValid] = React.useState(false)
-    const [alert, setAlert] = React.useState(new AlertInfo(false, undefined, undefined))
+    const [alert, setAlert] = React.useState(DEFAULT_ALERT_SETTINGS)
     const [urlError, setUrlError] = React.useState(false)
     const [token, setToken] = React.useState(snapshot.access_token)
 
@@ -140,6 +139,7 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
     React.useEffect(() => {
         return () => {
             store_unsubcribe()
+            captchaRef.current?.destroy()
         }
     })
 
@@ -202,10 +202,13 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
                 <CapWidget 
                     ref={captchaRef}
                     endpoint={`https://captcha.nighttune.app/${encodeURIComponent(process.env.NEXT_PUBLIC_CAPTCHA_SITEKEY!)}/`}
+                    autoRender={true}
                     onError={(error) => {
                         console.error(error)
                         setAlert(new AlertInfo(true, 'Captcha verification', 'Captcha verification failed'))
-                        captchaRef.current?.reset()
+                        
+                        // TODO Last resort, search for a better resolution to this.
+                        location.reload()
                     }}
                     onSolve={async (token) => {
                         const response = await fetch(new URL('captcha', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
@@ -217,11 +220,15 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
                         if (!response.ok) {
                             console.error('Captcha site verification failed')
                             setAlert(new AlertInfo(true, 'Captcha verification', 'Captcha verification failed'))
-                            captchaRef.current?.reset()
+                            
+                            // TODO Last resort, search for a better resolution to this.
+                            location.reload()
                         }
 
                         setCaptchaValid(response.ok)
-                        setAlert(DEFAULT_ALERT_SETTINGS)
+                        if (response.ok) {
+                            setAlert(DEFAULT_ALERT_SETTINGS)
+                        }
                     }}
                 />
             </FormGrid>

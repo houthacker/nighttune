@@ -10,6 +10,7 @@ import {
   DialogContentText,
   DialogTitle,
   Grid,
+  Link,
   Step,
   StepButton,
   StepLabel,
@@ -37,6 +38,7 @@ import ProfileConversion from './components/ProfileConversion';
 import store from './utils/localStore';
 
 import type { Dispatch, SetStateAction } from 'react';
+import GDPROverview from './components/GDPROverview';
 import type { Store } from './utils/localStore';
 
 // The steps to successfully queue an autotune job
@@ -44,7 +46,8 @@ const steps = [
   { name: 'ns_instance', display_name: 'Nightscout instance' }, 
   { name: 'profile_details', display_name: 'Profile details' }, 
   { name: 'profile_conversion', display_name: 'Profile conversion' },
-  { name: 'autotune_job_status', display_name: 'Autotune job status' }
+  { name: 'autotune_job_status', display_name: 'Autotune job status' },
+  { name: 'gdpr_overview', display_name: 'My data'}
 ];
 
 /**
@@ -60,15 +63,15 @@ const steps = [
  * @param {object} store The app data store.
  * @throws Error if the step is unknown.
  */
-function getStepContent(step: number, store: Store, preventNext: Dispatch<SetStateAction<boolean>>, errorInfo: any, setErrorInfo: (_: any) => void) {
+function getStepContent(step: number, store: Store, preventNext: Dispatch<SetStateAction<boolean>>) {
   switch (step) {
     case 0:
-      return <NightscoutInstance store={store} preventNext={preventNext} />;
+      return <NightscoutInstance store={store} preventNext={preventNext} />
     case 1:
       return <ProfileDetails 
         store={store} 
         preventNext={preventNext}
-      />;
+      />
     case 2:
       return <ProfileConversion
         store={store}
@@ -76,42 +79,59 @@ function getStepContent(step: number, store: Store, preventNext: Dispatch<SetSta
     case 3:
       return <AutotuneJobStatus
         store={store}
-      />;  
+      />
+    case 4:
+      return <GDPROverview
+        store={store}
+      />
     default:
-      throw new Error(`Unknown step index '${step}'`)   ;
+      throw new Error(`Unknown step index '${step}'`)
   }
 }
 
 export default function App(props: any) {
   // Error state shared with child components
-  const [preventNext, setPreventNext] = React.useState(true);
-  const [alertOpen, setAlertOpen] = React.useState(false);
-  const [activeStep, setActiveStep] = React.useState(0);
-  const [errorInfo, setErrorInfo] = React.useState({
-    isError: false,
-    errorText: '',
-    errorStep: -1,
-  });
+  const [preventNext, setPreventNext] = React.useState(true)
+  const [alertOpen, setAlertOpen] = React.useState(false)
+  const [activeStep, setActiveStep] = React.useState(0)
+  const [maxCompletedStep, setMaxCompletedStep] = React.useState(-1)
 
   // Read data from local storage into ns store if it is not initialized yet.
-  store.init();
-  
+  store.init()
+
+  React.useEffect(() => {
+    if (activeStep === 4) {
+      return
+    }
+
+    setMaxCompletedStep(activeStep - 1)
+  }, [activeStep])
+
+
+  const isStepCompleted = (index: number): boolean => {
+    return index === 4 || index <= maxCompletedStep
+  }
+
+  const isStepButtonDisabled = (index: number): boolean => {
+    return index !== 4 && !isStepCompleted(index)
+  }
+
   const handleNext = () => {
-    setActiveStep(activeStep + 1);
-  };
+    setActiveStep(activeStep + 1)
+  }
   const handlePrevious = () => {
-    setActiveStep(activeStep - 1);
-  };
+    setActiveStep(activeStep - 1)
+  }
   const handleResetData = () => {
-    setAlertOpen(true);
-  };
+    setAlertOpen(true)
+  }
   const handleResetDeclined = () => {
-    setAlertOpen(false);
+    setAlertOpen(false)
   }
   const handleResetConfirmed = () => {
-    setAlertOpen(false);
-    store.clear();
-    location.reload();
+    setAlertOpen(false)
+    store.clear()
+    location.reload()
   }
   return (
     <AppTheme {...props}>
@@ -202,7 +222,7 @@ export default function App(props: any) {
               justifyContent: { sm: 'space-between', md: 'flex-end' },
               alignItems: 'center',
               width: ' 100%',
-              maxWidth: { sm: '100%', md: 600 },
+              maxWidth: { sm: '100%', md: 600, lg: '70%' },
             }}
           >
             <Box
@@ -223,15 +243,10 @@ export default function App(props: any) {
                   <Step
                     sx={{ ':first-of-type': { pl: 0 }, ':last-of-type': { pr: 0} }}
                     key={step.name}
+                    completed={isStepCompleted(index)}
                   >
-                    <StepButton disabled={index > activeStep && preventNext} onClick={() => setActiveStep(index)}>
-                      <StepLabel
-                        error={errorInfo.isError && step.name === steps[errorInfo.errorStep].name}
-                        optional={errorInfo.isError  && step.name === steps[errorInfo.errorStep].name 
-                          ? <Typography variant='caption' color='error'>{errorInfo.errorText}</Typography> 
-                          : undefined
-                        }
-                      >
+                    <StepButton disabled={isStepButtonDisabled(index)} onClick={() => setActiveStep(index)}>
+                      <StepLabel>
                         {step.display_name}
                       </StepLabel>
                     </StepButton>
@@ -263,7 +278,7 @@ export default function App(props: any) {
               flexDirection: 'column',
               flexGrow: 1,
               width: '100%',
-              maxWidth: { sm: '100%', md: 600 },
+              maxWidth: { sm: '100%', md: 600, lg: '70%' },
               maxHeight: '720px',
               gap: { xs: 5, md: 'none' },
             }}
@@ -282,14 +297,10 @@ export default function App(props: any) {
                     '& .MuiStepConnector-root': { top: { xs: 6, sm: 12 } },
                   }}
                   key={step.name}
+                  completed={isStepCompleted(index)}
                 >
-                  <StepButton disabled={index > activeStep && preventNext} onClick={() => setActiveStep(index)}>
+                  <StepButton disabled={isStepButtonDisabled(index)} onClick={() => setActiveStep(index)}>
                     <StepLabel
-                      error={errorInfo.isError && step.name === steps[errorInfo.errorStep].name}
-                      optional={errorInfo.isError  && step.name === steps[errorInfo.errorStep].name 
-                        ? <Typography variant='caption' color='error'>{errorInfo.errorText}</Typography> 
-                        : undefined
-                      }
                       sx={{ '.MuiStepLabel-labelContainer': { maxWidth: '70px' } }}
                     >
                       {step.display_name}
@@ -299,7 +310,7 @@ export default function App(props: any) {
               ))}
             </Stepper>
             <React.Fragment>
-              {getStepContent(activeStep, store, setPreventNext, errorInfo, setErrorInfo)}
+              {getStepContent(activeStep, store, setPreventNext)}
               <Box
                 sx={[
                   {
@@ -373,7 +384,7 @@ export default function App(props: any) {
           <Box sx={{ position: 'fixed', bottom: '5px', left: { xs: '5px', md: '35%'} }}>
             <Grid container>
                 <Typography variant='body2' color='text.secondary'>
-                  Nighttune version: <VersionLink />
+                  Nighttune version: <VersionLink /> | <Link target="_blank" rel="noopener" href="https://github.com/houthacker/nighttune/blob/main/PRIVACY.md">Privacy policy</Link>
                 </Typography>
             </Grid>
           </Box>
