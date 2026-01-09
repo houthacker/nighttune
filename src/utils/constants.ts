@@ -1,3 +1,4 @@
+import { ReactElement } from 'react'
 
 export const SMOOTHING_MIN_BASAL_ELEMENTS: number = 5
 
@@ -13,9 +14,9 @@ export interface ErrorInfo {
 export class AlertInfo {
     public readonly show: boolean
     public readonly title: string | undefined
-    public readonly description: string | undefined
+    public readonly description: string | ReactElement<any, any> | undefined
 
-    constructor(show: boolean, title: string | undefined, description: string | undefined) {
+    constructor(show: boolean, title: string | undefined, description: string | ReactElement<any, any> | undefined) {
         this.show = show
         this.title = title
         this.description = description
