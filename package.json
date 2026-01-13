@@ -18,7 +18,7 @@
     "@fontsource/roboto": "^5.2.9",
     "@mui/icons-material": "^7.3.6",
     "@mui/material": "^7.3.6",
-    "@mui/x-charts": "^8.23.0",
+    "@mui/x-charts": "^8.24.0",
     "csrf": "^3.1.0",
     "date-fns": "^4.1.0",
     "iron-session": "^8.0.4",
