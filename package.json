@@ -11,7 +11,7 @@
     "start": "npx next start"
   },
   "dependencies": {
-    "@better-captcha/react": "^0.5.0",
+    "@better-captcha/react": "^0.5.3",
     "@date-fns/tz": "^1.4.1",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
