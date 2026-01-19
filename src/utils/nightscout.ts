@@ -1,5 +1,4 @@
 import { AlertInfo, NightscoutProfile } from './constants'
-import { Store } from './localStore'
 
 export const POST_PROCESSING_REVIVER = (k: any, v: any): any => {
     if (typeof v === 'object' && v.dt === 'Map') {
@@ -15,6 +14,7 @@ export type JobId = string
 export type Job = {
     id: JobId
     status: JobStatus
+    smoothing: BasalSmoothing
     submittedAt: any
 }
 
