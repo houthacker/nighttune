@@ -1,24 +1,32 @@
-import React, { ReactElement } from 'react'
-import { Alert, Box, Button, CircularProgress, Collapse, Divider, Fade, Grid, Link, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Modal, Typography } from '@mui/material'
-import { CheckCircleOutline, ConstructionOutlined, DownloadOutlined, ErrorOutline, HourglassEmptyOutlined, KeyboardDoubleArrowRight } from '@mui/icons-material'
 import { tz } from '@date-fns/tz'
+import { CheckCircleOutline, CloseOutlined, DownloadOutlined, ErrorOutline, HourglassEmptyOutlined, KeyboardDoubleArrowRight, UploadFileOutlined } from '@mui/icons-material'
+import { Alert, Box, Button, CircularProgress, Collapse, Divider, Fade, Grid, IconButton, Link, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Modal, styled, Typography } from '@mui/material'
 import { format, parseISO } from 'date-fns'
+import React, { ReactElement } from 'react'
 
-import { fetchJobs, fetchJobResults } from '../utils/nightscout'
 import { Store } from '../utils/localStore'
+import { BasalSmoothing, fetchJobResults, fetchJobs } from '../utils/nightscout'
 import FormGrid from './FormGrid'
 
 import type { Snapshot } from '../utils/localStore'
 import type { AutotuneResult, Job, JobStatus } from '../utils/nightscout'
 import AutotuneJobResults from './AutotuneJobResults'
+import ProfileUploadDialog from './ProfileUploadDialog'
 
-const DEFAULT_SUBMIT_STATUS = {
-    error: false, 
+const DEFAULT_STATUS_MESSAGE = {
     status: 0,
-    hint: undefined as string | undefined
+    severity: 'error' as 'error' | 'success',
+    message: undefined as string | undefined
 }
 
 const browserTimezone: string = Intl.DateTimeFormat().resolvedOptions().timeZone
+
+const BottomMarginCollapse = styled(Collapse)({
+    transition: 'all',
+    "&.MuiCollapse-entered": {
+        marginBottom: "50px"
+    }
+})
 
 export function InfoText() {
     return (
@@ -38,7 +46,7 @@ export function InfoText() {
                             You'll receive an email containing the results if you provided your email address.
                         </Typography>
                     }
-                ></ListItemText>
+                />
             </ListItem>
             <Divider variant='inset' component='li' />
             <ListItem alignItems='flex-start'>
@@ -53,7 +61,27 @@ export function InfoText() {
                             against your Nightscout instance. 
                         </Typography>
                     }
-                ></ListItemText>
+                />
+            </ListItem>
+            <Divider variant='inset' component='li' />
+            <ListItem alignItems='flex-start'>
+                <ListItemText 
+                    primary="Upload as profile"
+                    slotProps={{
+                        primary: { color: 'text.primary' }
+                    }}
+                    secondary={
+                        <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                            If an autotune job was successful, you can upload its recommendations as a new 
+                            Nightscout profile. This is done by taking the <em>current</em> version of the profile
+                            that was autotuned and replacing the <code>CR</code>, <code>ISF</code> and <code>basal</code> 
+                            values with those from the autotune recommendations. <br /><br />
+
+                            The profile is (intentionally) not activated, so you have to select and activate it 
+                            yourself using the app of your choice.
+                        </Typography>
+                    }
+                />
             </ListItem>
             <Divider variant='inset' component='li' />
             <ListItem alignItems='flex-start'>
@@ -86,7 +114,11 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
     const [intervalHandle, setIntervalHandle] = React.useState(undefined as any)
     const [jobResults, setJobResults] = React.useState(undefined as AutotuneResult | undefined)
     const [modalOpen, setModalOpen] = React.useState(false)
-    const [submitStatus, setSubmitStatus] = React.useState(DEFAULT_SUBMIT_STATUS)
+    const [statusMessage, setStatusMessage] = React.useState(DEFAULT_STATUS_MESSAGE)
+    const [showStatusMessage, setShowStatusMessage] = React.useState(false)
+    const [uploadDialogOpen, setUploadDialogOpen] = React.useState(false)
+    const [selectedJobId, setSelectedJobId] = React.useState('')
+    const [allowRecommendationChooser, setAllowRecommendationChooser] = React.useState(false)
 
     async function _fetchJobs() {
         const jobs = await fetchJobs()
@@ -136,23 +168,25 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
 
             if (result.ok) {
                 setHaveActiveJob(true)
-                setSubmitStatus(DEFAULT_SUBMIT_STATUS)
+                setStatusMessage(DEFAULT_STATUS_MESSAGE)
             } else {
                 console.error(result)
                 setHaveActiveJob(false)
-                setSubmitStatus({
-                    error: true,
+                setStatusMessage({
                     status: result.status,
-                    hint: `HTTP ${result.status}`
+                    severity: 'error',
+                    message: `Could not submit job: HTTP ${result.status}`
                 })
+                setShowStatusMessage(true)
             }
         } catch (error: any) {
             setHaveActiveJob(false)
-            setSubmitStatus({
-                error: true,
+            setStatusMessage({
                 status: 0,
-                hint: error instanceof Error ? error.message : 'Unknown error'
+                severity: 'error',
+                message: error instanceof Error ? error.message : 'Unknown error'
             })
+            setShowStatusMessage(true)
         }
     }
 
@@ -160,6 +194,80 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
         const results = await fetchJobResults(id)
         setJobResults(results)
         setModalOpen(!!results)
+    }
+
+    const onUploadProfileClicked = (id: string, allowRecommendationChooser: boolean) => {
+        setSelectedJobId(id)
+        setAllowRecommendationChooser(allowRecommendationChooser)
+        setUploadDialogOpen(true)
+    }
+
+    const onUploadProfileConfirmed = async(e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        setUploadDialogOpen(false)
+
+        const form = Object.fromEntries((new FormData(e.currentTarget) as any).entries())
+        const response = await fetch(new URL(`job/id/${selectedJobId}/create-ns-profile`, process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
+            method: 'POST',
+            credentials: 'include',
+            body: JSON.stringify({
+                name: form.profile_name
+            })
+        })
+
+        switch (response.status) {
+            case 200:
+                setStatusMessage({
+                    status: 200,
+                    severity: 'success',
+                    message: 'Profile successfully created.'
+                })
+                setShowStatusMessage(true)
+                break
+            case 401:
+                setStatusMessage({
+                    status: 401,
+                    severity: 'error',
+                    message: 'Cannot create profile: unauthorized. Maybe you\'re using a read-only access token?'
+                })
+                setShowStatusMessage(true)
+                break
+            case 404:
+                setStatusMessage({
+                    status: 404,
+                    severity: 'error',
+                    message: `Cannot create profile: related job ${selectedJobId} not found.`
+                })
+                setShowStatusMessage(true)
+                break
+            case 409:
+                setStatusMessage({
+                    status: 409,
+                    severity: 'error',
+                    message: 'Cannot create profile: a profile with the same name already exists.'
+                })
+                setShowStatusMessage(true)
+                break
+            case 410:
+                setStatusMessage({
+                    status: 410,
+                    severity: 'error',
+                    message: 'Profile used to run autotune job is missing from Nightscout profile list.'
+                })
+                setShowStatusMessage(true)
+                break
+            case 500:
+                setStatusMessage({
+                    status: 500,
+                    severity: 'error',
+                    message: `Error while creating profile for job ${selectedJobId}.`
+                })
+                setShowStatusMessage(true)
+                break
+            default:
+                setStatusMessage(DEFAULT_STATUS_MESSAGE)
+                setShowStatusMessage(false)
+        }
     }
 
     const JobIcon = (status: JobStatus) => {
@@ -176,6 +284,14 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
     
     return (
         <>
+            <ProfileUploadDialog 
+                open={uploadDialogOpen} 
+                onClose={() => {
+                    setUploadDialogOpen(false)
+                }}
+                onSubmit={onUploadProfileConfirmed}
+                allowRecommendationChooser={allowRecommendationChooser}
+            />
             <Modal
                 open={modalOpen}
                 onClose={() => { setModalOpen(false) }}
@@ -209,6 +325,25 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
                     </FormGrid>
                 </Grid>
             </Fade>
+            <BottomMarginCollapse in={showStatusMessage}>
+                <Alert 
+                    severity={statusMessage.severity}
+                    action={<IconButton
+                        size='small'
+                        color='inherit'
+                        onClick={() => {
+                            setStatusMessage(DEFAULT_STATUS_MESSAGE)
+                            setShowStatusMessage(false)
+                        }}
+                    sx={{ mb: 2 }}
+                    >
+                        <CloseOutlined />
+                    </IconButton>}
+                ><code>{statusMessage.message}</code> 
+                    {(statusMessage.status === 0 || statusMessage.status >= 500) && 
+                    <><br /><Link target='_blank' rel='noopener' href={process.env.NEXT_PUBLIC_NT_BUGS_OVERVIEW_URL!}>Explore current issues at github.</Link></>}
+                </Alert>
+            </BottomMarginCollapse>
             <React.Activity mode={haveActiveJob  ? 'hidden' : 'visible'}>
                 <Grid container spacing={3}>
                     <FormGrid>
@@ -222,14 +357,6 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
                     </FormGrid>
                 </Grid>
             </React.Activity>
-            <Collapse in={submitStatus.error}>
-                <Alert 
-                    severity='error'
-                >Could not submit job: <code>{submitStatus.hint}</code> 
-                    {(submitStatus.status === 0 || submitStatus.status >= 500) && 
-                    <><br /><Link target='_blank' rel='noopener' href={process.env.NEXT_PUBLIC_NT_BUGS_OVERVIEW_URL!}>Explore current issues at github.</Link></>}
-                </Alert>
-            </Collapse>
             <React.Activity mode={jobs === undefined ? 'hidden' : 'visible'}>
                 <Box>
                     <Typography variant='h5' sx={{ color: 'text.primary' }}>
@@ -241,27 +368,36 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
                         <ListItem 
                             divider={true}
                             key={job.id}
+                            sx={{ width: '100%'}}
                             secondaryAction={
                                 job.status === 'success' ? 
+                                <>
                                     <ListItemButton onClick={async () => {
                                         await onGetResultsClicked(job.id)
                                     }}>
-                                        <ListItemIcon><DownloadOutlined sx={{ alignSelf: 'center'}}  /></ListItemIcon>
+                                        <ListItemIcon><DownloadOutlined sx={{ alignSelf: 'end'}}  /></ListItemIcon>
                                         <ListItemText primary="Get results" />
                                     </ListItemButton> 
+                                </>
                                 : undefined
                             }>
-                            <Grid container spacing={2} sx={{ width: '100%'}}>
-                                <Grid size={1} sx={{ alignContent: 'center'}}>
+                            <Grid container spacing={1} sx={{ width: '100%'}}>
+                                <Grid size={1} sx={{ alignContent: 'center', marginRight: job.status === 'success' ? '0' : '-2px' }}>
                                     <ListItemIcon>
                                         {JobIcon(job.status)}
                                     </ListItemIcon>
                                 </Grid>
-                                <Grid size={4} sx={{ marginLeft: '2em', marginTop: '.5em' }}>
-                                    <ListItemText >{format(parseISO(job.submittedAt), 'yyyy-MM-dd HH:mm', {
+                                <Grid size={4} sx={{ paddingLeft: 0, marginTop: '.5em' }}>
+                                    <ListItemText>{format(parseISO(job.submittedAt), 'yyyy-MM-dd HH:mm', {
                                         in: tz(browserTimezone)
                                     })}</ListItemText>
                                 </Grid>
+                                {job.status === 'success' && <Grid size={5} sx={{marginLeft: '0', marginTop: '.5em' }}>
+                                    <ListItemButton onClick={() => onUploadProfileClicked(job.id, job.smoothing !== BasalSmoothing.NONE)}>
+                                        <ListItemIcon><UploadFileOutlined /></ListItemIcon>
+                                        <ListItemText primary="Upload as profile" />
+                                    </ListItemButton>
+                                </Grid>}
                             </Grid>
                         </ListItem>
                         )}

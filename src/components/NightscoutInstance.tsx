@@ -139,7 +139,6 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
     React.useEffect(() => {
         return () => {
             store_unsubcribe()
-            captchaRef.current?.destroy()
         }
     })
 
