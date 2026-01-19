@@ -2,7 +2,7 @@ import { tz } from '@date-fns/tz'
 import { CheckCircleOutline, CloseOutlined, DownloadOutlined, ErrorOutline, HourglassEmptyOutlined, KeyboardDoubleArrowRight, UploadFileOutlined } from '@mui/icons-material'
 import { Alert, Box, Button, CircularProgress, Collapse, Divider, Fade, Grid, IconButton, Link, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Modal, styled, Typography } from '@mui/material'
 import { format, parseISO } from 'date-fns'
-import React, { ReactElement } from 'react'
+import React, { ReactElement, ReactNode } from 'react'
 
 import { Store } from '../utils/localStore'
 import { BasalSmoothing, fetchJobResults, fetchJobs } from '../utils/nightscout'
@@ -16,7 +16,7 @@ import ProfileUploadDialog from './ProfileUploadDialog'
 const DEFAULT_STATUS_MESSAGE = {
     status: 0,
     severity: 'error' as 'error' | 'success',
-    message: undefined as string | undefined
+    message: undefined as ReactNode | string | undefined
 }
 
 const browserTimezone: string = Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -24,7 +24,7 @@ const browserTimezone: string = Intl.DateTimeFormat().resolvedOptions().timeZone
 const BottomMarginCollapse = styled(Collapse)({
     transition: 'all',
     "&.MuiCollapse-entered": {
-        marginBottom: "50px"
+        marginBottom: "60px"
     }
 })
 
@@ -228,7 +228,15 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
                 setStatusMessage({
                     status: 401,
                     severity: 'error',
-                    message: 'Cannot create profile: unauthorized. Maybe you\'re using a read-only access token?'
+                    message: (
+                        <Typography variant='body2'>
+                            Cannot create profile: unauthorized. <br />
+                            Your access token requires at least the permissions <code style={{ fontSize: 'small'}}>readable, api:profile:create</code> to 
+                            create a profile.<br />
+                            How to create an access token is documented&nbsp;
+                            <Link target="_blank" rel="noopener" href={'https://nightscout.github.io/nightscout/admin_tools/#create-a-token'} >here</Link>.
+                        </Typography>
+                    ) 
                 })
                 setShowStatusMessage(true)
                 break
@@ -339,13 +347,13 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
                     >
                         <CloseOutlined />
                     </IconButton>}
-                ><code>{statusMessage.message}</code> 
+                >{statusMessage.message}
                     {(statusMessage.status === 0 || statusMessage.status >= 500) && 
                     <><br /><Link target='_blank' rel='noopener' href={process.env.NEXT_PUBLIC_NT_BUGS_OVERVIEW_URL!}>Explore current issues at github.</Link></>}
                 </Alert>
             </BottomMarginCollapse>
             <React.Activity mode={haveActiveJob  ? 'hidden' : 'visible'}>
-                <Grid container spacing={3}>
+                <Grid container spacing={3} sx={{ marginTop: '10px'}}>
                     <FormGrid>
                         <Typography variant='h5' sx={{ color: 'text.primary' }}>
                             Actions

@@ -14,13 +14,13 @@ export default function ProfileUploadDialog({ open, allowRecommendationChooser, 
             <DialogContent>
                 <DialogContentText>
                     To upload the autotune results as a new Nightscout profile, enter the name for the new profile 
-                    and choose which recommendations to use. If you don't know what to choose, use
-                    the preselected "Autotune (default)".<br />
-                    The name must be unique and no profile with the same name is allowed to exist.
+                    and - if autotune ran using basal smoothing - choose whether to use smoothed or default recommendations. 
+                    If you don't know what to choose, use the preselected "Autotune (default)".<br />
+                    The profile name must be unique and no profile with the same name is allowed to exist.
                     <br /><br />
                     <Typography variant='caption' sx={{ color: 'red' }}>
                         This is a new feature and although it has been tested, it can contain bugs.
-                        Review the created profile carefully before activating it in you app of choice.
+                        Review the created profile carefully before activating it in your app of choice.
                         <br /><br />
                     </Typography>
                 </DialogContentText>
