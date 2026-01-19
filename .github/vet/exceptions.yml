@@ -25,4 +25,8 @@ exceptions:
     id: react-fast-compare-unmaintained
     name: 'react-fast-compare'
     version: 3.2.2
-  
+  - ecosystem: npm
+    expires: "2027-01-01T00:00:00Z"
+    id: d3-format-unmaintained
+    name: 'd3-format'
+    version: 3.1.2
