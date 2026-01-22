@@ -1,0 +1,88 @@
+{
+        "dia": 3,
+        "units": "mg/dl",
+        "timezone": "UTC",
+        "carbratio": [
+            {
+                "time": "00:00",
+                "timeAsSeconds": 0,
+                "value": 4.8
+            },
+            {
+                "time": "09:00",
+                "timeAsSeconds": 32400,
+                "value": 5.4
+            }
+        ],
+        "sens": [
+            {
+                "time": "00:00",
+                "timeAsSeconds": 0,
+                "value": 60
+            },
+            {
+                "time": "00:30",
+                "timeAsSeconds": 1800,
+                "value": 45
+            },
+            {
+                "time": "16:00",
+                "timeAsSeconds": 57600,
+                "value": 50
+            },
+            {
+                "time": "22:00",
+                "timeAsSeconds": 79200,
+                "value": 65
+            }
+        ],
+        "basal": [
+            {
+                "time": "00:00",
+                "timeAsSeconds": 0,
+                "value": 0.8
+            },
+            {
+                "time": "02:30",
+                "timeAsSeconds": 9000,
+                "value": 1.29
+            },
+            {
+                "time": "02:45",
+                "timeAsSeconds": 9900,
+                "value": 1.45
+            },
+            {
+                "time": "03:00",
+                "timeAsSeconds": 10800,
+                "value": 1.47
+            },
+            {
+                "time": "06:00",
+                "timeAsSeconds": 21600,
+                "value": 1.5
+            },
+            {
+                "time": "12:00",
+                "timeAsSeconds": 43200,
+                "value": 1.65
+            },
+            {
+                "time": "16:00",
+                "timeAsSeconds": 57600,
+                "value": 1.9
+            },
+            {
+                "time": "20:00",
+                "timeAsSeconds": 72000,
+                "value": 1.6
+            },
+            {
+                "time": "22:00",
+                "timeAsSeconds": 79200,
+                "value": 1.4
+            }
+        ],
+        "target_low": [],
+        "target_high": []
+    }

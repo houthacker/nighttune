@@ -1,4 +1,4 @@
-import { parse as parseTime } from 'date-fns'
+import { parse as parseTime, roundToNearestHours } from 'date-fns'
 import { InsulinType, SMOOTHING_MIN_BASAL_ELEMENTS } from './constants'
 
 import type { BarSeriesType, LineSeriesType } from '@mui/x-charts'
@@ -106,10 +106,27 @@ export function convertNightscoutProfile(
     curve = InsulinType.RapidActing,
     force_hourly_basal = false): OAPSProfile {
 
+    function roundUpToHours(seconds: number): number {
+        const remainder = seconds % 3600
+
+        return remainder === 0 ? seconds : seconds + 3600 - remainder
+    }
+
     function* forceHourly(elements: TimedValue[]): Generator<TimedValue> {
         let maxTimeAsSeconds = 86400;
-        for (const [idx, element] of elements.entries()) {
-            let nextTimeAsSeconds = elements.length === idx + 1 ? maxTimeAsSeconds : elements[idx + 1].timeAsSeconds;
+
+        const hourElements = elements
+        .map(e => {
+            // Map partial hours to the previous whole hour
+            const rounded = roundUpToHours(e.timeAsSeconds)
+            return {time: toHourString(rounded), timeAsSeconds: rounded, value: e.value} as TimedValue})
+        .filter((element, idx, array) => {
+            // Only keep elements having a different timeAsSeconds than the next element.
+            return element.timeAsSeconds !== array[idx + 1]?.timeAsSeconds
+        })
+
+        for (const [idx, element] of hourElements.entries()) {
+            let nextTimeAsSeconds = hourElements.length === idx + 1 ? maxTimeAsSeconds : hourElements[idx + 1].timeAsSeconds
             let elementHours = (nextTimeAsSeconds - element.timeAsSeconds) / 3600;
             
             for(let i=0; i < elementHours; i++) {
