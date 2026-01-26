@@ -2,7 +2,7 @@ import { tz } from '@date-fns/tz'
 import { format, parseISO } from 'date-fns'
 import { ReactElement } from 'react'
 
-import { Box, List, ListItem, ListItemText, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material'
+import { Box, List, ListItem, ListItemText, Paper, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TableRow, Typography } from '@mui/material'
 import { AutotuneResult, BasalSmoothing, PostProcessType, roundToNext } from '../utils/nightscout'
 
 const style = {
@@ -11,7 +11,7 @@ const style = {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: '40%',
+    width: '60%',
     bgcolor: 'background.paper',
     border: '2px solid #000',
     boxShadow: 24,
@@ -124,6 +124,22 @@ export default function AutotuneJobResults(props: AutotuneJobResultsProps): Reac
                         </TableRow>
                     ))}
                 </TableBody>
+                <TableFooter>
+                    <TableRow key="basal-totals">
+                        <TableCell>Totals</TableCell>
+                        <TableCell>{props.result.find_basal().reduce((accumulator, b) => accumulator + b.currentValue, 0).toFixed(2)}</TableCell>
+                        <TableCell>{props.result.find_basal().reduce((accumulator, b) => accumulator + b.recommendedValue, 0).toFixed(3)}</TableCell>
+                        <TableCell>{props.result.find_basal().reduce((accumulator, b) => {
+                            return accumulator + (b.roundedRecommendation ?? Math.round(roundToNext(b.recommendedValue, props.result!.options.basalIncrement) * 100) / 100)
+                        }, 0).toFixed(2)}</TableCell>
+                        {haveBasalSmoothing(props) &&
+                        <TableCell>{props.result.find_basal().reduce((accumulator, b) => {
+                            return accumulator + (Math.round(roundToNext(b.postProcessed.get(PostProcessType.SMOOTH) || 0, props.result!.options.basalIncrement) * 100) / 100)
+                        }, 0).toFixed(2)}</TableCell>
+                        }
+                        <TableCell>N/A</TableCell>
+                    </TableRow>
+                </TableFooter>
             </Table>
         </TableContainer>
     </Box>
