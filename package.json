@@ -24,7 +24,7 @@
     "date-fns": "^4.1.0",
     "iron-session": "^8.0.4",
     "next": "^16.1.5",
-    "react": "^19.2.3",
+    "react": "^19.2.4",
     "react-dom": "^19.2.3",
     "react-helmet": "^6.1.0",
     "react-router-dom": "^7.12.0",
@@ -33,7 +33,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@types/node": "^25.0.9",
-    "@types/react": "^19.2.8",
+    "@types/react": "^19.2.10",
     "@types/react-dom": "^19.2.3",
     "@types/react-helmet": "^6.1.11",
     "@types/semver": "^7.7.1",
