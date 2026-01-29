@@ -9,20 +9,25 @@ import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import { resourceFromAttributes } from '@opentelemetry/resources'
 import { ZoneContextManager } from '@opentelemetry/context-zone'
 
-const exporter = new OTLPTraceExporter({
+import { LoggerProvider, BatchLogRecordProcessor } from '@opentelemetry/sdk-logs'
+import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http'
+import { logs } from '@opentelemetry/api-logs'
+
+const serviceName = 'nighttune-frontend'
+const traceExporter = new OTLPTraceExporter({
   // For self-hosted version, please use the collector url instead.
   url: process.env.NEXT_PUBLIC_DTRACE_URL,
 })
 
-const provider = new WebTracerProvider({
+const tracerProvider = new WebTracerProvider({
   resource: resourceFromAttributes({
     'deployment.environment': process.env.NEXT_PUBLIC_DEPLOY_ENV ?? 'unspecified',
-    'service.name': 'nighttune-frontend',
+    'service.name': serviceName,
   }),
-  spanProcessors: [new BatchSpanProcessor(exporter)],
+  spanProcessors: [new BatchSpanProcessor(traceExporter)],
 })
 
-provider.register({
+tracerProvider.register({
   contextManager: new ZoneContextManager(),
 })
 
@@ -42,3 +47,18 @@ registerInstrumentations({
     }),
   ],
 })
+
+const loggerProvider = new LoggerProvider({
+  resource: resourceFromAttributes({
+    'service.name': serviceName
+  }),
+  processors: [
+    new BatchLogRecordProcessor(
+      new OTLPLogExporter({
+        url: process.env.NEXT_PUBLIC_DTRACE_URL
+      })
+    )
+  ]
+})
+
+logs.setGlobalLoggerProvider(loggerProvider)
