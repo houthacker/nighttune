@@ -32,6 +32,16 @@ exceptions:
     version: 3.1.2
   - ecosystem: npm
     expires: "2027-01-01T00:00:00Z"
+    id: long-unmaintained
+    name: 'long'
+    version: 5.3.2
+  - ecosystem: npm
+    expires: "2027-01-01T00:00:00Z"
+    id: module-details-from-path-unmaintained
+    name: 'module-details-from-path'
+    version: 1.0.4
+  - ecosystem: npm
+    expires: "2027-01-01T00:00:00Z"
     id: tsx-suspicious
     name: 'tsx'
     version: 4.21.0
