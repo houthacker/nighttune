@@ -50,12 +50,13 @@ registerInstrumentations({
 
 const loggerProvider = new LoggerProvider({
   resource: resourceFromAttributes({
+    'deployment.environment': process.env.NEXT_PUBLIC_DEPLOY_ENV ?? 'unspecified',
     'service.name': serviceName
   }),
   processors: [
     new BatchLogRecordProcessor(
       new OTLPLogExporter({
-        url: process.env.NEXT_PUBLIC_DTRACE_URL
+        url: process.env.NEXT_PUBLIC_DLOG_URL
       })
     )
   ]

@@ -7,6 +7,8 @@ import { ConversionSettings, Snapshot, Store } from '../utils/localStore'
 import { fetchNightscoutProfiles } from '../utils/nightscout'
 import FormGrid from './FormGrid'
 
+import * as logger from '../utils/logger'
+
 export function InfoText() {
     const [advancedSettingsOpened, openAdvancedSettings] = React.useState(false)
 
@@ -322,6 +324,13 @@ export default function ProfileDetails({ store, preventNext }:
                     return v === undefined && k === "nightscout_access_token" ? undefined : v
                 })
             })
+
+            if (!response.ok) {
+                logger.warn('Nightscout URL failed', {
+                    'url': request.nightscout_url,
+                    'http.status': response.status
+                })
+            }
 
             if (!response.ok && !alert.show) {
                 let additionalDescription = ''
