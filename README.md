@@ -13,6 +13,11 @@ Nighttune runs at <https://nighttune.app>. All user documentation is available a
 - Basal smoothing using [Savitzky-Golay](https://en.wikipedia.org/wiki/Savitzky%E2%80%93Golay_filter) filter.
 - Force hourly basal recommendations for determining basal changes.
 
+## Monitoring &amp; logging
+
+Monitoring and logging is done using a self-hosted version of <https://signoz.io>. What is logged is decribed in
+the [Privacy Policy](./PRIVACY.md#data-not-relateable-to-you)
+
 ## Help
 
 ### Discord
@@ -22,3 +27,7 @@ Nighttune is present on Discord, use this invite to get there: <https://discord.
 ### Issues
 
 If you encounter an issue, please submit a ticket at <https://github.com/houthacker/nighttune/issues>.
+
+### Last resort
+
+If the above options didn't solve your problem, you can send an email describing your problem to `help at nighttune dot app`.
