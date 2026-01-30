@@ -34,14 +34,14 @@ that is not retained is used only when executing the Application and discarded i
 #### Data not relateable to you
 
 The table below contains data elements collected for performance monitoring and
-debugging and is not relateable to you.
-**Therefore, this data cannot be retrieved nor deleted using a GDPR request.**
+debugging and is not relateable to you. **Therefore, this data cannot be retrieved nor deleted using a GDPR request.**
+The retention periods shown in this table may change without notice.
 
-| Data elements                                 | Retained | Use                                |
-|-----------------------------------------------|----------|------------------------------------|
-| Meta data about requests to Nighttune backend |&#x2713;  | Performance monitoring, debugging  |
-| Application logging                           |&#x2713;  | Performance monitoring, debugging  |
-|                                               |          |                                    |
+| Data elements                                 | Retention period  | Use                                |
+|-----------------------------------------------|-------------------|------------------------------------|
+| Meta data about requests to Nighttune backend |2 months           | Performance monitoring, debugging  |
+| Application logging                           |6 months           | Performance monitoring, debugging  |
+| Metrics                                       |12 months          | Performance monitoring, debugging  |
 
 Below are some examples of the data that is retained for monitoring and debugging purposes. These examples
 not need to be complete and only serve to provide an impression of what it looks like.
