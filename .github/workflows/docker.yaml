@@ -52,6 +52,7 @@ jobs:
           echo "NEXT_PUBLIC_DTRACE_URL=${{ env.DTRACE_URL }}" >> .env.production
           echo "NEXT_PUBLIC_DLOG_URL=${{ env.DLOG_URL }}" >> .env.production
           echo "NEXT_PUBLIC_DEPLOY_ENV=production" >> .env.production
+          echo "NEXT_PUBLIC_DTRACE_PROPAGATE_CORS_DOMAINS=${{ env.DTRACE_CORS_PROPAGATION_DOMAINS }}"
 
       # This step uses the `docker/build-push-action` action to build the image, based on your repository's `Dockerfile`. If the build succeeds, it pushes the image to GitHub Packages.
       # It uses the `context` parameter to define the build's context as the set of files located in the specified path. For more information, see [Usage](https://github.com/docker/build-push-action#usage) in the README of the `docker/build-push-action` repository.

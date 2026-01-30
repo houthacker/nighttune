@@ -37,13 +37,13 @@ registerInstrumentations({
       // Selects which backend servers are allowed to receive trace headers for linking traces across services.
       // Using /.*/ acts as a wildcard. For safer usage in production, replace with specific domains:
       // e.g. propagateTraceHeaderCorsUrls: [/api\.example\.com/, /my-backend\.internal/]
-      propagateTraceHeaderCorsUrls: /.*/,
+      propagateTraceHeaderCorsUrls: new RegExp(process.env.NEXT_PUBLIC_DTRACE_PROPAGATE_CORS_DOMAINS!),
     }),
     new UserInteractionInstrumentation({
-      eventNames: ['click', 'input', 'submit'],
+      eventNames: ['submit'],
     }),
     new XMLHttpRequestInstrumentation({
-      propagateTraceHeaderCorsUrls: /.*/,
+      propagateTraceHeaderCorsUrls: new RegExp(process.env.NEXT_PUBLIC_DTRACE_PROPAGATE_CORS_DOMAINS!),
     }),
   ],
 })
