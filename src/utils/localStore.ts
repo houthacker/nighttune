@@ -3,6 +3,8 @@ import type { InsulinType, NightscoutProfileDef, OAPSProfile } from './constants
 import { getMigrations } from './migrations';
 import { BasalSmoothing } from './nightscout';
 
+import * as logger from './logger'
+
 // Storage key for Nightscout instance data.
 const NS_STORAGE_KEY = 'ns-instance';
 
@@ -89,7 +91,7 @@ export class Store {
         try {
             this.migrate(intermediate_store.version || '0.0.1')
         } catch (error: any) {
-            console.warn('Migrating local data failed. Pruning local data to force migration.', error)
+            logger.warn('Migrating local data failed. Pruning local data to force migration.', { 'error': JSON.stringify(error) })
             this.prune()
         }
     }
@@ -108,7 +110,7 @@ export class Store {
         const {url, access_token, ..._} = JSON.parse(localStorage.getItem(NS_STORAGE_KEY) || '{}')
 
         intermediate_store = {...JSON.parse(INITIAL_STORE), url, access_token}
-        console.log('setting intermediate store', INITIAL_STORE)
+        logger.debug('Pruning store')
         localStorage.setItem(NS_STORAGE_KEY, JSON.stringify({...intermediate_store}))
     }
 

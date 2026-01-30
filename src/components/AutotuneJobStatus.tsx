@@ -13,6 +13,8 @@ import type { AutotuneResult, Job, JobStatus } from '../utils/nightscout'
 import AutotuneJobResults from './AutotuneJobResults'
 import ProfileUploadDialog from './ProfileUploadDialog'
 
+import * as logger from '../utils/logger'
+
 const DEFAULT_STATUS_MESSAGE = {
     status: 0,
     severity: 'error' as 'error' | 'success',
@@ -151,6 +153,7 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
             const result = await fetch(new URL('job', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
                 method: 'POST',
                 credentials: 'include',
+                // TODO remove url and access token and have backend read them from cookie
                 body: JSON.stringify({
                     nightscout_url: snapshot.url!,
                     nightscout_access_token: snapshot.access_token,
@@ -170,7 +173,9 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
                 setHaveActiveJob(true)
                 setStatusMessage(DEFAULT_STATUS_MESSAGE)
             } else {
-                console.error(result)
+                logger.error('Job submission failed', {
+                    'http.status': result.status
+                })
                 setHaveActiveJob(false)
                 setStatusMessage({
                     status: result.status,
@@ -180,6 +185,9 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
                 setShowStatusMessage(true)
             }
         } catch (error: any) {
+            logger.error('Job submission failed', {
+                'error': 'Unknown error'
+            })
             setHaveActiveJob(false)
             setStatusMessage({
                 status: 0,

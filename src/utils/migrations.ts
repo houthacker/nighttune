@@ -3,6 +3,8 @@ import { Snapshot } from './localStore'
 import { isSmoothingAvailable } from './profile'
 import { BasalSmoothing } from './nightscout'
 
+import * as logger from './logger'
+
 export interface Migration {
 
     /**
@@ -32,7 +34,7 @@ const migrations: Migration[] = [
 ]
 
 export function getMigrations(fromVersion: string, toVersion: string): Migration[] {
-    console.debug(`Retrieving migrations from ${fromVersion} to ${toVersion}`)
+    logger.debug(`Retrieving migrations from ${fromVersion} to ${toVersion}`)
     return migrations
         .filter(m => semver.compare(fromVersion, m.version) <= 0 && semver.compare(toVersion, m.version) >= 0)
         .sort((x, y) => {

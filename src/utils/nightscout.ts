@@ -1,4 +1,5 @@
 import { AlertInfo, NightscoutProfile } from './constants'
+import * as logger from './logger'
 
 export const POST_PROCESSING_REVIVER = (k: any, v: any): any => {
     if (typeof v === 'object' && v.dt === 'Map') {
@@ -116,7 +117,7 @@ export async function fetchNightscoutProfiles(): Promise<NightscoutProfile> {
             return Promise.reject(new AlertInfo(true, 'Failed to fetch profile', `HTTP error ${response.status}: ${response.statusText}`))
         }
     } catch (error) {
-        console.error("Network request failed: ", error)
+        logger.error("Network request failed", { 'error': JSON.stringify(error) })
         return Promise.reject(new AlertInfo(true, 'Failed to fetch profile', 'Network error'))
     }
 }
