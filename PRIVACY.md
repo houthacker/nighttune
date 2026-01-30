@@ -1,13 +1,14 @@
-**Nighttune Privacy Policy**
+# Nighttune Privacy Policy
 
 This privacy policy is applicable to the `Nighttune` website (hereinafter referred to as "Application") for browser-capable devices, which was developed by [houthacker](https://github.com/houthacker) (hereinafter referred to as "Service Provider") as a an Open Source service. This service is provided "AS IS".
 
+<!-- markdownlint-disable MD033 -->
 <u>This privacy policy is effective as of **2026-07-01**</u>
 
 **What information does the Application obtain and how is it used?**  
 **What information do users provide to the Application?**
 
-The Application acquires the information you supply when you use the Application. Nighttune will only contact you to send your autotune report, 
+The Application acquires the information you supply when you use the Application. Nighttune will only contact you to send your autotune report,
 if you provide an email address. will only be used to send you your autotune report.
 
 Important information and notices are sent through the `#general` Discord channel listed in [README.md](./README.md#discord).
@@ -25,11 +26,11 @@ that is not retained is used only when executing the Application and discarded i
 | Nightscout profiles       |&#x2713;  | Running autotune, showing reports  |
 | Nightscout treatments     |&#x2713;  | Running autotune, showing reports  |
 | Autotune recommendations  |&#x2713;  | Running autotune, showing reports  |
-||||
+| ------------------------- | -------- | ---------------------------------- |
 
 ***Database schema***
 
-For those wanting to know the technical details of the retained data, the Nighttune database schema is located at https://github.com/houthacker/nighttune-backend/blob/main/src/config/db.sql. 
+For those wanting to know the technical details of the retained data, the Nighttune database schema is located at <https://github.com/houthacker/nighttune-backend/blob/main/src/config/db.sql>.
 
 **Does the Application collect precise real time location information?**
 
@@ -45,7 +46,7 @@ No.
 
 **What are my rights?**
 
-Under the GDPR there are [a number of rights](https://www.edpb.europa.eu/about-edpb/faq-frequently-asked-questions/what-are-my-rights-under-gdpr_en) you can excercise. For Nighttune, the "Right of data portability" and the "Right to reasure" are fully automated so that you can excercise them at will. 
+Under the GDPR there are [a number of rights](https://www.edpb.europa.eu/about-edpb/faq-frequently-asked-questions/what-are-my-rights-under-gdpr_en) you can excercise. For Nighttune, the "Right of data portability" and the "Right to reasure" are fully automated so that you can excercise them at will.
 To do so, go to [Nighttune](https://nighttune.app) and click on the `My Data` step for further instructions.
 
 Additionally, you can excercise the "Right of Access" by visiting the Application and inspect your data there.
