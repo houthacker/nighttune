@@ -28,10 +28,11 @@
   },
   "include": [
     "./src/",
+    "./src/instrumentation-client.ts",
+    "dist/types/**/*.ts",
     "dist/dev/types/**/*.ts",
     "./dist/types/**/*.ts",
-    "./dist/dev/types/**/*.ts",
-    "dist/types/**/*.ts"
+    "./dist/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

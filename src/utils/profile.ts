@@ -1,4 +1,4 @@
-import { parse as parseTime, roundToNearestHours } from 'date-fns'
+import { parse as parseTime } from 'date-fns'
 import { InsulinType, SMOOTHING_MIN_BASAL_ELEMENTS } from './constants'
 
 import type { BarSeriesType, LineSeriesType } from '@mui/x-charts'

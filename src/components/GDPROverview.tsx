@@ -1,4 +1,4 @@
-import { KeyboardDoubleArrowRight } from '@mui/icons-material'
+import { KeyboardDoubleArrowRight, NightShelter } from '@mui/icons-material'
 import {
     Alert,
     AlertTitle,
@@ -22,6 +22,8 @@ import { Store } from '../utils/localStore'
 
 import { AlertInfo } from '../utils/constants'
 import FormGrid from './FormGrid'
+
+import * as logger from '../utils/logger'
 
 export function InfoText() {
     return (
@@ -130,7 +132,10 @@ export default function GDPROverview({ store }: { store: Store }): ReactElement<
             method: 'DELETE',
             credentials: 'include',
         }).then(async (response) => {
+            
             if (response.ok) {
+                logger.info('GDPR delete request execution successful')
+
                 setAlert({
                     show: false,
                     title: undefined,
@@ -153,6 +158,9 @@ export default function GDPROverview({ store }: { store: Store }): ReactElement<
                 store.clear()
                 location.reload()
             } else {
+                logger.error('GDPR delete request execution failed', {
+                    'http.status': response.status
+                })
                 setAlert({
                     show: true,
                     title: 'Data deletion',
@@ -167,6 +175,7 @@ export default function GDPROverview({ store }: { store: Store }): ReactElement<
                 })
             }
         }, (_) => {
+            logger.error('GDPR delete request failed')
             setAlert({
                 show: true,
                 title: 'Data deletion',

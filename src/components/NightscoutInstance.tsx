@@ -11,6 +11,8 @@ import type { ChangeEvent, FocusEvent } from 'react'
 import { AlertInfo } from '../utils/constants'
 import type { Snapshot, Store } from '../utils/localStore'
 
+import * as logger from '../utils/logger'
+
 const DEFAULT_ALERT_SETTINGS = new AlertInfo(false, undefined, undefined)
 
 export function InfoText() {
@@ -203,7 +205,9 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
                     endpoint={`https://captcha.nighttune.app/${encodeURIComponent(process.env.NEXT_PUBLIC_CAPTCHA_SITEKEY!)}/`}
                     autoRender={true}
                     onError={(error) => {
-                        console.error(error)
+                        logger.error('Captcha verification failed', {
+                            'error': typeof error === 'string' ? error : JSON.stringify(error)
+                        })
                         setAlert(new AlertInfo(true, 'Captcha verification', 'Captcha verification failed'))
                         
                         // TODO Last resort, search for a better resolution to this.
@@ -217,7 +221,9 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
                         })
 
                         if (!response.ok) {
-                            console.error('Captcha site verification failed')
+                            logger.error('Captcha site verification failed', {
+                                'http.status': response.status
+                            })
                             setAlert(new AlertInfo(true, 'Captcha verification', 'Captcha verification failed'))
                             
                             // TODO Last resort, search for a better resolution to this.
