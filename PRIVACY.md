@@ -224,6 +224,52 @@ not need to be complete and only serve to provide an impression of what it looks
 
 </details>
 
+<details>
+<summary>Backend logging example</summary>
+
+```json
+{
+  "body": "[https://my.nightscout.host] Autotune successful.",
+  "date": "2026-02-01T15:07:18.885Z",
+  "id": "0jPzj8ZkwvV9nU8oDPLqNu7lUeu",
+  "timestamp": "2026-02-01T15:07:18.885Z",
+  "attributes": {
+    "span_id": "e1a8f3be2a9f79d5",
+    "timestamp": "2026-02-01 16:07:18 +01:00",
+    "trace_flags": "01",
+    "trace_id": "7d2b248ec58b093c4ebf3a4b297982c3"
+  },
+  "resources": {
+    "host.arch": "amd64",
+    "host.id": "39312AD0-E362-5538-9BC7-65508ECD5268",
+    "host.name": "nighttune.app",
+    "os.type": "linux",
+    "os.version": "6.8.0-90-generic",
+    "process.command": "/app/main.js",
+    "process.command_args": "[\"/.nvm/versions/node/v25.2.1/bin/node\",\"/app/main.js\"]",
+    "process.executable.name": "/.nvm/versions/node/v25.2.1/bin/node",
+    "process.executable.path": "/.nvm/versions/node/v25.2.1/bin/node",
+    "process.owner": "nighttune",
+    "process.pid": "68089",
+    "process.runtime.description": "Node.js",
+    "process.runtime.name": "nodejs",
+    "process.runtime.version": "25.2.1",
+    "service.instance.id": "121d696b-ebf3-474b-8366-b4b1dcd7a311",
+    "service.name": "nighttune-backend"
+  },
+  "scope": {},
+  "severity_text": "debug",
+  "severity_number": 5,
+  "scope_name": "@opentelemetry/winston-transport",
+  "scope_version": "0.21.0",
+  "span_id": "e1a8f3be2a9f79d5",
+  "trace_flags": 1,
+  "trace_id": "7d2b248ec58b093c4ebf3a4b297982c3"
+}
+```
+
+</details>
+
 #### Database schema
 
 For those wanting to know the technical details of the retained data, the Nighttune database schema is located at <https://github.com/houthacker/nighttune-backend/blob/main/src/config/db.sql>.
