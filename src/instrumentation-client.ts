@@ -24,7 +24,7 @@ const tracerProvider = new WebTracerProvider({
     'deployment.environment': process.env.NEXT_PUBLIC_DEPLOY_ENV ?? 'unspecified',
     'service.name': serviceName,
   }),
-  sampler: new TraceIdRatioBasedSampler(0.1),
+  sampler: new TraceIdRatioBasedSampler(1.0),
   spanProcessors: [new BatchSpanProcessor(traceExporter)],
 })
 
