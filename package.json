@@ -35,7 +35,7 @@
     "csrf": "^3.1.0",
     "date-fns": "^4.1.0",
     "iron-session": "^8.0.4",
-    "next": "^16.1.5",
+    "next": "^16.1.6",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-helmet": "^6.1.0",
