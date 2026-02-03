@@ -1,5 +1,5 @@
 'use client'
-import { WebTracerProvider } from '@opentelemetry/sdk-trace-web'
+import { WebTracerProvider, TraceIdRatioBasedSampler } from '@opentelemetry/sdk-trace-web'
 import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch'
@@ -24,6 +24,7 @@ const tracerProvider = new WebTracerProvider({
     'deployment.environment': process.env.NEXT_PUBLIC_DEPLOY_ENV ?? 'unspecified',
     'service.name': serviceName,
   }),
+  sampler: new TraceIdRatioBasedSampler(0.1),
   spanProcessors: [new BatchSpanProcessor(traceExporter)],
 })
 
