@@ -297,6 +297,9 @@ export default function ProfileDetails({ store, preventNext }:
             setProfileNames([...Object.keys(data.store)].reverse())
             setDefaultProfile(data.defaultProfile)
 
+            // Log profile so it can be related to possible caching errors (http 304)
+            logger.debug(JSON.stringify(data))
+
             if (snapshot.conversion_settings.profile_name) {
                 setSelectedProfile(snapshot.conversion_settings.profile_name)
             }
