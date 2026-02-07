@@ -47,6 +47,26 @@ export function InfoText() {
                 />
             </ListItem>
             <Divider variant="inset" component="li" />
+            <ListItem alignItems="flex-start">
+                <ListItemText
+                    primary="Access token required"
+                    slotProps={{
+                        primary: { color: 'text.primary' }
+                    }}
+                    secondary={
+                        <Typography variant='body2' sx={{ color: 'text.secondary'}} >
+                            To either retrieve or delete all your data, you must prove that you own the related 
+                            Nightscout instance by providing an access token that has at least the <code>readable</code>
+                            role; do so at the Nighttune entry page, where you'd normally provide your 
+                            Nightscout instance details.<br /><br />
+
+                            If you do not prove you own the Nightscout site, attempting to execute any GDPR request
+                            will fail with an <code>HTTP 403 - Access Denied</code> status.
+                        </Typography>
+                    }
+                />
+            </ListItem>
+            <Divider variant="inset" component="li" />
             <ListItem alignItems='flex-start'>
                 <ListItemText secondary={
                     <Typography variant='body2' >
@@ -85,20 +105,23 @@ export default function GDPROverview({ store }: { store: Store }): ReactElement<
                 link.click()
 
                 document.body.removeChild(link)
-            } else {
+            } else {logger.error('GDPR retrieve-data request execution failed', {
+                    'http.status': response.status
+                })
                 setAlert({
                     show: true,
                     title: 'Data export',
                     description: (
                     <Typography>
-                        Exporting your data failed; the request returned status ${response.status}. Please try again later or report an issue 
-                        &nbsp;<Link target="_blank" rel="noopener" href={process.env.NEXT_PUBLIC_NT_BUGS_OVERVIEW!}>here</Link>&nbsp;
+                        Exporting your data failed; the request returned status ${response.status}. ${response.status === 403 && "To ensure it's you who controls this Nightscout instance, provide an access token with the correct permissions (see help)."} 
+                        Please try again later or report an issue&nbsp;<Link target="_blank" rel="noopener" href={process.env.NEXT_PUBLIC_NT_BUGS_OVERVIEW!}>here</Link>&nbsp;
                         if the problem persists.
                     </Typography>
                 )
                 })
             }
         }, (_) => {
+            logger.error('GDPR data retrieval execution failed')
             setAlert({
                 show: true,
                 title: 'Data export',
@@ -166,9 +189,8 @@ export default function GDPROverview({ store }: { store: Store }): ReactElement<
                     title: 'Data deletion',
                     description: (
                         <Typography>
-                            Could not delete your data; the request returned status ${response.status}
-                            Please try again later or report an issue 
-                            &nbsp;<Link target="_blank" rel="noopener" href={process.env.NEXT_PUBLIC_NT_BUGS_OVERVIEW!}>here</Link>&nbsp;
+                            Could not delete your data; the request returned status ${response.status}. ${response.status === 403 && "To ensure it's you who controls this Nightscout instance, provide an access token with the correct permissions (see help)."} 
+                            Please try again later or report an issue&nbsp;<Link target="_blank" rel="noopener" href={process.env.NEXT_PUBLIC_NT_BUGS_OVERVIEW!}>here</Link>&nbsp;
                             if the problem persists.
                         </Typography>
                     )
