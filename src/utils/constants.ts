@@ -1,5 +1,10 @@
 import { ReactElement } from 'react'
 
+export enum NightscoutApiVersion {
+    v1 = 1,
+    v3 = 3
+}
+
 export const SMOOTHING_MIN_BASAL_ELEMENTS: number = 5
 
 export interface ErrorInfo {
