@@ -1,4 +1,4 @@
-import { CapWidget, type CapWidgetHandle } from "@better-captcha/react/provider/cap-widget"
+import Cap, { CapErrorEvent, CapSolveEvent, SolveResult } from '@cap.js/widget'
 import React from 'react'
 import { Helmet } from 'react-helmet'
 
@@ -98,14 +98,56 @@ export function InfoText() {
 
 export function NightscoutInstance({ store, preventNext }: { store: Store, preventNext: (value: boolean) => void}) {
     const snapshot: Snapshot = React.useSyncExternalStore(store.subscribe, store.getSnapshot)
-    const captchaRef = React.useRef<CapWidgetHandle | null>(null)
-    
     const [url, setUrl] = React.useState(snapshot.url)
     const [captchaValid, setCaptchaValid] = React.useState(false)
     const [alert, setAlert] = React.useState(DEFAULT_ALERT_SETTINGS)
     const [urlError, setUrlError] = React.useState(false)
     const [token, setToken] = React.useState(snapshot.access_token)
     const [apiVersion, setApiVersion] = React.useState(snapshot.nightscout_api_version || NightscoutApiVersion.v1)
+
+    // Set up cap.js widget and event listeners.
+    const cap = new Cap({
+        apiEndpoint: `https://captcha.nighttune.app/${encodeURIComponent(process.env.NEXT_PUBLIC_CAPTCHA_SITEKEY!)}/`
+    })
+    cap.addEventListener('error', (error: CapErrorEvent) => {
+        logger.error(`Captcha verification failed:\n${error.detail.message}`)
+        setAlert(new AlertInfo(true, 'Captcha verification', 'Captcha verification failed'))
+        
+        // TODO Last resort, search for a better resolution to this.
+        location.reload()
+    })
+    cap.addEventListener('solve', async (event: CapSolveEvent) => {
+        const response = await fetch(new URL('captcha', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
+            method: 'POST',
+            body: JSON.stringify({ token: event.detail.token }),
+            credentials: 'include'
+        })
+
+        if (!response.ok) {
+            logger.error('Captcha site verification failed', {
+                'http.status': response.status
+            })
+            setAlert(new AlertInfo(true, 'Captcha verification', 'Captcha verification failed'))
+            
+            // TODO Last resort, search for a better resolution to this.
+            location.reload()
+        } else {
+            setCaptchaValid(true)
+            setAlert(DEFAULT_ALERT_SETTINGS)
+        }
+    })
+    window.CAP_CUSTOM_WASM_URL = 'https://captcha.nighttune.app/assets/cap_wasm.js'
+
+    // Try to solve the captcha if it's not valid (yet)
+    React.useEffect(() => {
+        async function solve() {
+            return await cap.solve()
+        }
+
+        if (!captchaValid) {
+            solve()
+        }
+    }, [captchaValid])
 
     // With initial values, disable preventNext by validating url.
     let prevent = true
@@ -237,44 +279,6 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
                     <MenuItem value={1}>API v1 (old version)</MenuItem>
                     <MenuItem value={3}>API v3 (AAPS compatible)</MenuItem>
                 </Select>
-            </FormGrid>
-            <FormGrid size={{ xs: 21, md: 6}}>
-                <CapWidget 
-                    ref={captchaRef}
-                    endpoint={`https://captcha.nighttune.app/${encodeURIComponent(process.env.NEXT_PUBLIC_CAPTCHA_SITEKEY!)}/`}
-                    autoRender={true}
-                    onError={(error) => {
-                        logger.error('Captcha verification failed', {
-                            'error': typeof error === 'string' ? error : JSON.stringify(error)
-                        })
-                        setAlert(new AlertInfo(true, 'Captcha verification', 'Captcha verification failed'))
-                        
-                        // TODO Last resort, search for a better resolution to this.
-                        location.reload()
-                    }}
-                    onSolve={async (token) => {
-                        const response = await fetch(new URL('captcha', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
-                            method: 'POST',
-                            body: JSON.stringify({ token }),
-                            credentials: 'include'
-                        })
-
-                        if (!response.ok) {
-                            logger.error('Captcha site verification failed', {
-                                'http.status': response.status
-                            })
-                            setAlert(new AlertInfo(true, 'Captcha verification', 'Captcha verification failed'))
-                            
-                            // TODO Last resort, search for a better resolution to this.
-                            location.reload()
-                        }
-
-                        setCaptchaValid(response.ok)
-                        if (response.ok) {
-                            setAlert(DEFAULT_ALERT_SETTINGS)
-                        }
-                    }}
-                />
             </FormGrid>
         </Grid>
         </>
