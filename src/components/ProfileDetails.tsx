@@ -2,7 +2,7 @@ import React, { ChangeEvent } from 'react'
 
 import { Cached, ExpandLess as ExpandLessIcon, ExpandMore as ExpandMoreIcon, WarningAmber as WarningAmberIcon } from '@mui/icons-material'
 import { Alert, AlertTitle, Box, Button, CircularProgress, Collapse, Divider, Fade, FormControl, Grid, InputAdornment, InputLabel, List, ListItem, ListItemButton, ListItemIcon, ListItemText, MenuItem, Select, TextField, Tooltip, Typography } from '@mui/material'
-import { AlertInfo, INITIAL_CONVERSION_SETTINGS, InsulinType, isInsulinType, NightscoutProfile, NightscoutProfiles } from '../utils/constants'
+import { AlertInfo, INITIAL_CONVERSION_SETTINGS, InsulinType, isInsulinType, NightscoutApiVersion, NightscoutProfile, NightscoutProfiles } from '../utils/constants'
 import { ConversionSettings, Snapshot, Store } from '../utils/localStore'
 import { fetchNightscoutProfiles } from '../utils/nightscout'
 import FormGrid from './FormGrid'
@@ -319,6 +319,7 @@ export default function ProfileDetails({ store, preventNext }:
         async function verifyAndFetch(request: {
             nightscout_url: string,
             nightscout_access_token: string | undefined,
+            nightscout_api_version: NightscoutApiVersion | undefined
         }) {
             const response = await fetch(new URL('verify', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
                 method: 'POST',
@@ -371,7 +372,8 @@ export default function ProfileDetails({ store, preventNext }:
 
         verifyAndFetch({
             nightscout_url: snapshot.url!,
-            nightscout_access_token: snapshot.access_token
+            nightscout_access_token: snapshot.access_token,
+            nightscout_api_version: snapshot.nightscout_api_version
         })
     }, [setAlert])
 
