@@ -4,6 +4,7 @@ import { isSmoothingAvailable } from './profile'
 import { BasalSmoothing } from './nightscout'
 
 import * as logger from './logger'
+import { NightscoutApiVersion } from './constants'
 
 export interface Migration {
 
@@ -30,6 +31,17 @@ const migrations: Migration[] = [
                 snapshot.conversion_settings.basal_smoothing = BasalSmoothing.NONE
             }
         },
+    },
+    {
+        version: '2.4.0',
+        execute(snapshot: Snapshot) {
+            snapshot.version = this.version
+
+            // Set the Nightscout API version to the default, if it doesn't exist.
+            if (snapshot.nightscout_api_version === undefined) {
+                snapshot.nightscout_api_version = NightscoutApiVersion.v1
+            }
+        }
     }
 ]
 
