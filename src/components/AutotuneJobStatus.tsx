@@ -1,5 +1,14 @@
 import { tz } from '@date-fns/tz'
-import { CheckCircleOutline, CloseOutlined, DownloadOutlined, ErrorOutline, HourglassEmptyOutlined, KeyboardDoubleArrowRight, UploadFileOutlined } from '@mui/icons-material'
+import { 
+    CheckCircleOutline, 
+    CloseOutlined, 
+    DownloadOutlined, 
+    ErrorOutline, 
+    FileUploadOff,
+    HourglassEmptyOutlined, 
+    KeyboardDoubleArrowRight, 
+    UploadFileOutlined 
+} from '@mui/icons-material'
 import { Alert, Box, Button, CircularProgress, Collapse, Divider, Fade, Grid, IconButton, Link, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Modal, styled, Typography } from '@mui/material'
 import { format, parseISO } from 'date-fns'
 import React, { ReactElement, ReactNode } from 'react'
@@ -14,6 +23,7 @@ import AutotuneJobResults from './AutotuneJobResults'
 import ProfileUploadDialog from './ProfileUploadDialog'
 
 import * as logger from '../utils/logger'
+import { NightscoutApiVersion } from '../utils/constants'
 
 const DEFAULT_STATUS_MESSAGE = {
     status: 0,
@@ -80,7 +90,9 @@ export function InfoText() {
                             values with those from the autotune recommendations. <br /><br />
 
                             The profile is (intentionally) not activated, so you have to select and activate it 
-                            yourself using the app of your choice.
+                            yourself using the app of your choice.<br /><br />
+
+                            <em>Note that profile uploads are only available if you selected Nightscout API v3.</em>
                         </Typography>
                     }
                 />
@@ -111,6 +123,7 @@ export function InfoText() {
 
 export default function AutotuneJobStatus({ store }: { store: Store }): ReactElement<any, any> {
     const snapshot: Snapshot = React.useSyncExternalStore(store.subscribe, store.getSnapshot)
+    const profileUploadAllowed = snapshot.nightscout_api_version === NightscoutApiVersion.v3
     const [jobs, setJobs] = React.useState<Job[] | undefined>(undefined)
     const [haveActiveJob, setHaveActiveJob] = React.useState(false)
     const [intervalHandle, setIntervalHandle] = React.useState(undefined as any)
@@ -232,15 +245,29 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
                 })
                 setShowStatusMessage(true)
                 break
-            case 401:
+            case 407:
                 setStatusMessage({
-                    status: 401,
+                    status: 407,
                     severity: 'error',
                     message: (
                         <Typography variant='body2'>
-                            Cannot create profile: unauthorized. <br />
-                            Your access token requires at least the permissions <code style={{ fontSize: 'small'}}>readable, api:profile:create</code> to 
+                            Your site requires an access token having at least the permissions <code style={{ fontSize: 'small'}}>readable, api:profile:create, api:profile:update</code> to 
                             create a profile.<br />
+                            How to create an access token is documented&nbsp;
+                            <Link target="_blank" rel="noopener" href={'https://nightscout.github.io/nightscout/admin_tools/#create-a-token'} >here</Link>.
+                        </Typography>
+                    ) 
+                })
+                setShowStatusMessage(true)
+                break
+            case 403:
+                setStatusMessage({
+                    status: 403,
+                    severity: 'error',
+                    message: (
+                        <Typography variant='body2'>
+                            Your access token has insufficient permissions.
+                            To upload a profile, your token requires at least the <code style={{ fontSize: 'small'}}>readable, api:profile:create, api:profile:update</code> roles.<br />
                             How to create an access token is documented&nbsp;
                             <Link target="_blank" rel="noopener" href={'https://nightscout.github.io/nightscout/admin_tools/#create-a-token'} >here</Link>.
                         </Typography>
@@ -409,8 +436,14 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
                                     })}</ListItemText>
                                 </Grid>
                                 {job.status === 'success' && <Grid size={5} sx={{marginLeft: '0', marginTop: '.5em' }}>
-                                    <ListItemButton onClick={() => onUploadProfileClicked(job.id, job.smoothing !== BasalSmoothing.NONE)}>
-                                        <ListItemIcon><UploadFileOutlined /></ListItemIcon>
+                                    <ListItemButton 
+                                        onClick={() => onUploadProfileClicked(job.id, job.smoothing !== BasalSmoothing.NONE)}
+                                        disabled={!profileUploadAllowed}
+                                    >
+                                        <ListItemIcon>{profileUploadAllowed 
+                                            ? <UploadFileOutlined />
+                                            : <FileUploadOff />
+                                        }</ListItemIcon>
                                         <ListItemText primary="Upload as profile" />
                                     </ListItemButton>
                                 </Grid>}

@@ -61,6 +61,24 @@ export function InfoText() {
                 <Divider variant="inset" component="li" />
                 <ListItem alignItems='flex-start'>
                     <ListItemText 
+                        primary="Nightscout API version"
+                        slotProps={{
+                            primary: { color: 'text.primary' }
+                        }}
+                        secondary={
+                            <Typography variant='body2' sx={{ color: 'text.secondary' }} >
+                                You can select the Nightscout API version to use.
+                                The recommended version is <code>v3</code>, since that is the latest and most secure version.<br /><br />
+                                API <code>v3</code> was added in 2019 in Nightscout 13.0.0, so almost all Nightscout instances should 
+                                support this.<br />
+                                If you want to upload an autotune result to a new profile, the <code>v3</code> API is required.
+                            </Typography>
+                        }
+                    />
+                </ListItem>
+                <Divider variant="inset" component="li" />
+                <ListItem alignItems='flex-start'>
+                    <ListItemText 
                         primary="Bot protection"
                         slotProps={{
                             primary: { color: 'text.primary' }
