@@ -2,13 +2,13 @@ import { CapWidget, type CapWidgetHandle } from "@better-captcha/react/provider/
 import React from 'react'
 import { Helmet } from 'react-helmet'
 
-import { Alert, AlertTitle, Divider, Fade, FormLabel, Grid, Link, List, ListItem, ListItemText, TextField, Typography } from '@mui/material'
+import { Alert, AlertTitle, Divider, Fade, FormLabel, Grid, InputLabel, Link, List, ListItem, ListItemText, MenuItem, Select, TextField, Typography } from '@mui/material'
 
 import { STORE_EVENT_TYPES } from '../utils/localStore'
 import FormGrid from './FormGrid'
 
 import type { ChangeEvent, FocusEvent } from 'react'
-import { AlertInfo } from '../utils/constants'
+import { AlertInfo, NightscoutApiVersion } from '../utils/constants'
 import type { Snapshot, Store } from '../utils/localStore'
 
 import * as logger from '../utils/logger'
@@ -87,6 +87,7 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
     const [alert, setAlert] = React.useState(DEFAULT_ALERT_SETTINGS)
     const [urlError, setUrlError] = React.useState(false)
     const [token, setToken] = React.useState(snapshot.access_token)
+    const [apiVersion, setApiVersion] = React.useState(snapshot.nightscout_api_version || NightscoutApiVersion.v1)
 
     // With initial values, disable preventNext by validating url.
     let prevent = true
@@ -128,6 +129,13 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
     const handleTokenBlur = (event: FocusEvent<HTMLInputElement>) => {
         setToken(event.target.value)
         store.setToken(event.target.value)
+    }
+
+    const onApiVersionSelected = (event: ChangeEvent<Omit<HTMLInputElement, "value"> & { value: NightscoutApiVersion }, Element> 
+        | Event & { target: { value: NightscoutApiVersion, name: string}}) => {
+
+            setApiVersion(event.target.value)
+            store.setNightscoutApiVersion(event.target.value as NightscoutApiVersion)
     }
 
     const store_unsubcribe = store.subscribe((event_type) => {
@@ -199,6 +207,19 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
                 />
             </FormGrid>
             <Divider sx={{ width: '100%' }} />
+            <FormGrid size={{ xs: 12, md: 6, lg: 5}}>
+                <InputLabel id="lbl-ns-api-version">Nightscout API version</InputLabel>
+                <Select
+                    labelId="lbl-ns-api-version"
+                    id="ns-api-version"
+                    value={apiVersion}
+                    label="Nightscout API version"
+                    onChange={(e) => onApiVersionSelected(e)}
+                >
+                    <MenuItem value={1}>API v1 (old version)</MenuItem>
+                    <MenuItem value={3}>API v3 (AAPS compatible)</MenuItem>
+                </Select>
+            </FormGrid>
             <FormGrid size={{ xs: 21, md: 6}}>
                 <CapWidget 
                     ref={captchaRef}
