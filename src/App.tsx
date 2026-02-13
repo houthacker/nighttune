@@ -385,6 +385,7 @@ export default function App(props: any) {
             <Grid container>
                 <Typography variant='body2' color='text.secondary'>
                   Nighttune version: <VersionLink /> | <Link target="_blank" rel="noopener" href="https://github.com/houthacker/nighttune/blob/main/PRIVACY.md">Privacy policy</Link>
+                  &nbsp;| Captcha by <Link target="_blank" rel="noopener" href="https://capjs.js.org/">capjs</Link>
                 </Typography>
             </Grid>
           </Box>
