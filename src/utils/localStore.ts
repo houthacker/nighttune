@@ -1,5 +1,5 @@
 
-import type { InsulinType, NightscoutProfileDef, OAPSProfile } from './constants';
+import type { InsulinType, NightscoutApiVersion, NightscoutProfileDef, OAPSProfile } from './constants';
 import { getMigrations } from './migrations';
 import { BasalSmoothing } from './nightscout';
 
@@ -17,6 +17,7 @@ export const STORE_EVENT_TYPES = {
     SET_TOKEN: 'set_token',
     SET_CONVERSION_SETTINGS: 'set_conversion_settings',
     SET_OAPS_PROFILE: 'set_oaps_profile',
+    SET_NIGHTSCOUT_API_VERSION: 'set_nightscout_api_version',
     CLEAR: 'clear',
 };
 
@@ -44,6 +45,7 @@ export interface ConversionSettings {
 
 export interface Snapshot {
     version?: string
+    nightscout_api_version?: NightscoutApiVersion
     url?: string
     access_token?: string
     profiles: Profiles
@@ -110,8 +112,19 @@ export class Store {
         const {url, access_token, ..._} = JSON.parse(localStorage.getItem(NS_STORAGE_KEY) || '{}')
 
         intermediate_store = {...JSON.parse(INITIAL_STORE), url, access_token}
-        logger.debug('Pruning store')
+        logger.debug(`Pruning store for url ${url}`)
         localStorage.setItem(NS_STORAGE_KEY, JSON.stringify({...intermediate_store}))
+    }
+
+    /**
+     * Set the preferred Nightscout API version to use.
+     */
+    setNightscoutApiVersion(version: NightscoutApiVersion): void {
+        let snapshot = this.getSnapshot()
+        snapshot.nightscout_api_version = version
+
+        localStorage.setItem(NS_STORAGE_KEY, JSON.stringify({...snapshot}))
+        emitChange(STORE_EVENT_TYPES.SET_NIGHTSCOUT_API_VERSION)
     }
 
     /**
