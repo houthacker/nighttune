@@ -1,28 +1,17 @@
-import { logs, SeverityNumber, type AnyValueMap } from '@opentelemetry/api-logs'
+import * as Sentry from '@sentry/nextjs'
 
-const logger = logs.getLogger('frontend-logger')
-
-function log(severityNumber: SeverityNumber, severityText: string, body: string, attrs: AnyValueMap = {}) {
-    logger.emit({
-        body,
-        severityNumber,
-        severityText,
-        attributes: attrs
-    })
+export function debug(body: string, meta?: Record<string, unknown>) {
+    Sentry.logger.debug(body, meta)
 }
 
-export function debug(body: string, attrs: AnyValueMap = {}) {
-    log(SeverityNumber.DEBUG, 'DEBUG', body, attrs)
+export function info(body: string, meta?: Record<string, unknown>) {
+   Sentry.logger.info(body, meta)
 }
 
-export function info(body: string, attrs: AnyValueMap = {}) {
-    log(SeverityNumber.INFO, 'INFO', body, attrs)
+export function warn(body: string, meta?: Record<string, unknown>) {
+    Sentry.logger.warn(body, meta)
 }
 
-export function warn(body: string, attrs: AnyValueMap = {}) {
-    log(SeverityNumber.WARN, 'WARN', body, attrs)
-}
-
-export function error(body: string, attrs: AnyValueMap = {}) {
-    log(SeverityNumber.ERROR, 'ERROR', body, attrs)
+export function error(body: string, meta?: Record<string, unknown>) {
+    Sentry.logger.error(body, meta)
 }
