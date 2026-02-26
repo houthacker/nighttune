@@ -1,5 +1,4 @@
 import '../src/index.css'
-import '../src/instrumentation-client'
 
 export const metadata = {
     title: 'Nighttune',

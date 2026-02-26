@@ -20,7 +20,6 @@
     "@mui/icons-material": "^7.3.7",
     "@mui/material": "^7.3.7",
     "@mui/x-charts": "^8.27.0",
-    "@sentry/nextjs": "^10.39.0",
     "csrf": "^3.1.0",
     "date-fns": "^4.1.0",
     "iron-session": "^8.0.4",
