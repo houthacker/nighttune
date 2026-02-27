@@ -51,8 +51,8 @@ jobs:
           echo "NEXT_PUBLIC_NT_BUGS_OVERVIEW=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/issues?q=is%3Aissue+state%3Aopen+label%3Abug" >> .env.production
           echo "NEXT_PUBLIC_DEPLOY_ENV=production" >> .env.production
           echo "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${{ secrets.SERVER_ACTIONS_ENCRYPTION_KEY }}" >> .env.production
-          echo "NEXT_PUBLIC_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=${{ vars.DLOG_URL }}" >> env.production 
-          echo "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=${{ vars.DLOG_URL }}"
+          echo "NEXT_PUBLIC_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=${{ vars.DLOG_URL }}" >> .env.production 
+          echo "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=${{ vars.DLOG_URL }}" >> .env.production
 
       # This step uses the `docker/build-push-action` action to build the image, based on your repository's `Dockerfile`. If the build succeeds, it pushes the image to GitHub Packages.
       # It uses the `context` parameter to define the build's context as the set of files located in the specified path. For more information, see [Usage](https://github.com/docker/build-push-action#usage) in the README of the `docker/build-push-action` repository.
