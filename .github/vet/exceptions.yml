@@ -45,3 +45,8 @@ exceptions:
     id: tsx-suspicious
     name: 'tsx'
     version: 4.21.0
+  - ecosystem: npm
+    expires: "2050-01-01T00:00:00Z"
+    id: rollup-dangerous-workflow
+    name: '@rollup/'
+    version: 4.59.0
