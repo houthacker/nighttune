@@ -1,6 +1,8 @@
 import type { NextConfig } from 'next'
 
-export const nextConfig: NextConfig = {
+const nextConfig: NextConfig = {
     distDir: './dist',
     productionBrowserSourceMaps: true,
 }
+
+export default nextConfig
