@@ -46,7 +46,7 @@ const migrations: Migration[] = [
 ]
 
 export function getMigrations(fromVersion: string, toVersion: string): Migration[] {
-    logger.debug(`Retrieving migrations from ${fromVersion} to ${toVersion}`)
+    logger.trace(`Retrieving migrations from ${fromVersion} to ${toVersion}`)
     return migrations
         .filter(m => semver.compare(fromVersion, m.version) <= 0 && semver.compare(toVersion, m.version) >= 0)
         .sort((x, y) => {
