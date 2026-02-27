@@ -48,5 +48,5 @@ exceptions:
   - ecosystem: npm
     expires: "2050-01-01T00:00:00Z"
     id: rollup-dangerous-workflow
-    name: '@rollup/'
-    version: 4.59.0
+    name: '@rollup/*'
+    version: '*'
