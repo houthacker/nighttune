@@ -131,7 +131,7 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
             setAlert(DEFAULT_ALERT_SETTINGS)
         }
     })
-    window.CAP_CUSTOM_WASM_URL = 'https://captcha.nighttune.app/assets/cap_wasm.js'
+    window.CAP_CUSTOM_WASM_URL = `${process.env.NEXT_PUBLIC_CAPTCHA_BASE_URL}/assets/cap_wasm.js`
 
     // Try to solve the captcha if it's not valid (yet)
     React.useEffect(() => {
