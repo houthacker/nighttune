@@ -28,3 +28,4 @@ build
 .next
 next-env.d.ts
 .env*
+!examples/.env.example
