@@ -111,10 +111,7 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
     })
     cap.addEventListener('error', (error: CapErrorEvent) => {
         logger.error(`Captcha verification failed:\n${error.detail.message}`)
-        setAlert(new AlertInfo(true, 'Captcha verification', 'Captcha verification failed'))
-        
-        // TODO Last resort, search for a better resolution to this.
-        location.reload()
+        setAlert(new AlertInfo(true, 'Captcha verification', 'Captcha verification failed. Please reload the page to try again.'))
     })
     cap.addEventListener('solve', async (event: CapSolveEvent) => {
         const response = await fetch(new URL('captcha', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
@@ -127,10 +124,8 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
             logger.error('Captcha site verification failed', {
                 'http.status': response.status
             })
-            setAlert(new AlertInfo(true, 'Captcha verification', 'Captcha verification failed'))
             
-            // TODO Last resort, search for a better resolution to this.
-            location.reload()
+            setAlert(new AlertInfo(true, 'Captcha verification', 'Captcha site verification failed. Please reload the page to try again.'))
         } else {
             setCaptchaValid(true)
             setAlert(DEFAULT_ALERT_SETTINGS)
@@ -223,11 +218,11 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
         >
             <Grid
                 container
-                spacing={3}
+                spacing={9}
                 direction='row'
                 sx={{
-                    justifyContent: 'left',
-                    alignItems: 'left'
+                    justifyContent: 'center',
+                    alignItems: 'center'
                 }}
             >
                 <Alert severity='error' color='error'>
