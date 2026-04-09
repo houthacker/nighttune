@@ -107,7 +107,7 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
 
     // Set up cap.js widget and event listeners.
     const cap = new Cap({
-        apiEndpoint: `https://captcha.nighttune.app/${encodeURIComponent(process.env.NEXT_PUBLIC_CAPTCHA_SITEKEY!)}/`
+        apiEndpoint: `${process.env.NEXT_PUBLIC_CAPTCHA_BASE_URL}/${encodeURIComponent(process.env.NEXT_PUBLIC_CAPTCHA_SITEKEY!)}/`
     })
     cap.addEventListener('error', (error: CapErrorEvent) => {
         logger.error(`Captcha verification failed:\n${error.detail.message}`)
