@@ -245,8 +245,11 @@ export default function GDPROverview({ store }: { store: Store }): ReactElement<
         <Grid
             container
             spacing={3}
-            direction='column'
-            alignItems='center'
+            direction='row'
+            sx={{
+                justifyContent: 'center',
+                alignItems: 'center'
+            }}
         >
             <Alert severity='error' color='error'>
                 <AlertTitle>{alert.title}</AlertTitle>

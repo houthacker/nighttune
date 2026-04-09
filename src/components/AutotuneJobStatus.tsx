@@ -1,9 +1,9 @@
 import { tz } from '@date-fns/tz'
 import { 
-    CheckCircleOutline, 
+    CheckCircleOutlined, 
     CloseOutlined, 
     DownloadOutlined, 
-    ErrorOutline, 
+    ErrorOutlined, 
     FileUploadOff,
     HourglassEmptyOutlined, 
     KeyboardDoubleArrowRight, 
@@ -319,9 +319,9 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
             case 'processing':
                 return <HourglassEmptyOutlined />
             case 'success':
-                return <CheckCircleOutline />
+                return <CheckCircleOutlined />
             case 'error':
-                return <ErrorOutline />
+                return <ErrorOutlined />
         }
     }
     
@@ -355,8 +355,11 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
                 <Grid
                     container
                     spacing={3}
-                    direction='column'
-                    alignItems='center'
+                    direction='row'
+                    sx={{
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                    }}
                 >
                     <FormGrid size={2}>
                         <CircularProgress />

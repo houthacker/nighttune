@@ -1,5 +1,5 @@
 import { Alert, AlertTitle, Box, CircularProgress, Divider, Fade, FormControl, Grid, InputAdornment, InputLabel, List, ListItem, ListItemText, MenuItem, Select, TextField, Typography } from '@mui/material';
-import { BarPlot, ChartContainer, ChartsAxisHighlight, ChartsTooltip, ChartsXAxis, ChartsYAxis, lineElementClasses, LineHighlightPlot, LinePlot } from '@mui/x-charts';
+import { BarPlot, ChartsContainer, ChartsAxisHighlight, ChartsTooltip, ChartsXAxis, ChartsYAxis, lineClasses, LineHighlightPlot, LinePlot } from '@mui/x-charts';
 import { format } from 'date-fns';
 import React from 'react';
 
@@ -253,8 +253,11 @@ export default function ProfileConversion({ store }: { store: Store }): ReactEle
                 <Grid
                     container
                     spacing={3}
-                    direction='column'
-                    alignItems='center'
+                    direction='row'
+                    sx={{
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                    }}
                 >
                     <FormGrid size={2}>
                         <CircularProgress />
@@ -276,8 +279,11 @@ export default function ProfileConversion({ store }: { store: Store }): ReactEle
                 <Grid
                     container
                     spacing={3}
-                    direction='column'
-                    alignItems='center'
+                    direction='row'
+                    sx={{
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                    }}
                 >
                     <Alert severity='error' color='error'>
                         <AlertTitle>Profile</AlertTitle>
@@ -295,8 +301,11 @@ export default function ProfileConversion({ store }: { store: Store }): ReactEle
                 <Grid
                     container
                     spacing={3}
-                    direction='column'
-                    alignItems='center'
+                    direction='row'
+                    sx={{
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                    }}
                 >
                     <Alert severity='info'>
                         <AlertTitle>Conversion</AlertTitle>
@@ -311,8 +320,9 @@ export default function ProfileConversion({ store }: { store: Store }): ReactEle
                 unmountOnExit
             >
                 <Box sx={{ width: '100%' }}>
-                    <Box>
-                        <ChartContainer
+                    <Box >
+                        <ChartsContainer
+                            height={160}
                             series={carbRatioSeries}
                             onAxisClick={(e, d) => onCRGraphClicked(d)}
                             xAxis={[
@@ -342,7 +352,7 @@ export default function ProfileConversion({ store }: { store: Store }): ReactEle
                                 }
                             ]}
                             sx={{
-                                [`& .${lineElementClasses.root}`]: {
+                                [`& .${lineClasses.line}`]: {
                                     strokeDasharray: '10 2',
                                     strokeWidth: 2,
                                 }
@@ -373,8 +383,9 @@ export default function ProfileConversion({ store }: { store: Store }): ReactEle
                                 tickLabelStyle={{ fontSize: 10 }}
                             />
                             <ChartsTooltip />
-                        </ChartContainer>
-                        <ChartContainer
+                        </ChartsContainer>
+                        <ChartsContainer
+                            height={160}
                             series={isfSeries}
                             onAxisClick={(e, d) => onISFGraphClicked(d)}
                             xAxis={[
@@ -404,7 +415,7 @@ export default function ProfileConversion({ store }: { store: Store }): ReactEle
                                 }
                             ]}
                             sx={{
-                                [`& .${lineElementClasses.root}`]: {
+                                [`& .${lineClasses.line}`]: {
                                     strokeDasharray: '10 2',
                                     strokeWidth: 2,
                                 }
@@ -435,7 +446,7 @@ export default function ProfileConversion({ store }: { store: Store }): ReactEle
                                 tickLabelStyle={{ fontSize: 10 }}
                             />
                             <ChartsTooltip />
-                        </ChartContainer>
+                        </ChartsContainer>
                     </Box>
                     <Box>
                         <Typography key='choose-cr-isf-title' variant='h5' sx={{ color: 'text.primary' }}>
