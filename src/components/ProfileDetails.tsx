@@ -439,8 +439,11 @@ export default function ProfileDetails({ store, preventNext }:
                 <Grid
                     container
                     spacing={3}
-                    direction='column'
-                    alignItems='center'
+                    direction='row'
+                    sx={{
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                    }}
                 >
                     <FormGrid size={2}>
                         <CircularProgress />
@@ -462,8 +465,11 @@ export default function ProfileDetails({ store, preventNext }:
                 <Grid
                     container
                     spacing={3}
-                    direction='column'
-                    alignItems='center'
+                    direction='row'
+                    sx={{
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                    }}
                 >
                     <Alert severity='error' color='error'>
                         <AlertTitle>{alert.title}</AlertTitle>
@@ -475,8 +481,11 @@ export default function ProfileDetails({ store, preventNext }:
                 <Grid
                     container
                     spacing={3}
-                    direction='column'
-                    alignItems='center'
+                    direction='row'
+                    sx={{
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                    }}
                 >
                     <FormGrid>
                         <InputLabel id="profile-selector-label" htmlFor="profile-selector">Select a profile to use</InputLabel>

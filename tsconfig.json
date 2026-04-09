@@ -4,20 +4,22 @@
     "sourceMap": true,
     "module": "esnext",
     "jsx": "react-jsx",
-    "target": "es5",
+    "target": "es6",
     "allowJs": true,
     "lib": [
       "dom",
       "dom.iterable",
       "esnext"
     ],
-    "downlevelIteration": true,
+    "types": [
+      "node"
+    ],
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
     "incremental": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "plugins": [

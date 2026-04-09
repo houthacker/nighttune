@@ -1,4 +1,4 @@
-import Cap, { CapErrorEvent, CapSolveEvent, SolveResult } from '@cap.js/widget'
+import Cap, { CapErrorEvent, CapSolveEvent } from '@cap.js/widget'
 import React from 'react'
 import { Helmet } from 'react-helmet'
 
@@ -224,8 +224,11 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
             <Grid
                 container
                 spacing={3}
-                direction='column'
-                alignItems='left'
+                direction='row'
+                sx={{
+                    justifyContent: 'left',
+                    alignItems: 'left'
+                }}
             >
                 <Alert severity='error' color='error'>
                     <AlertTitle>{alert.title}</AlertTitle>
