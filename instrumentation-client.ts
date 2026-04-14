@@ -5,18 +5,26 @@ import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions'
 import { resourceFromAttributes } from '@opentelemetry/resources'
 import { logs } from '@opentelemetry/api-logs'
 
-const logExporter = new OTLPLogExporter({
-    url: '/log-proxy',
-    compression: CompressionAlgorithm.GZIP
-})
-const logRecordProcessor = new BatchLogRecordProcessor(logExporter, {
-    maxExportBatchSize: 10,
-})
-const loggerProvider = new LoggerProvider({
-    resource: resourceFromAttributes({
-        [ATTR_SERVICE_NAME]: 'nighttune-frontend'
-    }),
-    processors: [logRecordProcessor]
-})
+import { OptionalService } from './src/utils/constants'
+import { isServiceEnabled } from './src/utils/optionalServices'
 
-logs.setGlobalLoggerProvider(loggerProvider)
+if (isServiceEnabled(OptionalService.DistributedTracing)) {
+
+    const logExporter = new OTLPLogExporter({
+        url: '/log-proxy',
+        compression: CompressionAlgorithm.GZIP
+    })
+    const logRecordProcessor = new BatchLogRecordProcessor(logExporter, {
+        maxExportBatchSize: 10,
+    })
+    const loggerProvider = new LoggerProvider({
+        resource: resourceFromAttributes({
+            [ATTR_SERVICE_NAME]: 'nighttune-frontend'
+        }),
+        processors: [logRecordProcessor]
+    })
+
+    logs.setGlobalLoggerProvider(loggerProvider)
+} else {
+    console.info('Distributed tracing service disabled, only logging to browser console.')
+}

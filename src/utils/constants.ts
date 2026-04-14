@@ -7,9 +7,14 @@ export enum NightscoutApiVersion {
 
 export const enum OptionalService {
     /**
-      * Service to check if the frontend user is a real person.
-      */
+     * Service to check if the frontend user is a real person.
+     */
      Captcha = 'captcha',
+
+    /**
+     * Service to enable distributed tracing.
+     */
+     DistributedTracing = 'dtrace',
 }
 
 /**
@@ -17,6 +22,7 @@ export const enum OptionalService {
  */
 export const ServiceEnvVars = {
     [OptionalService.Captcha]: [process.env.NEXT_PUBLIC_CAPTCHA_BASE_URL, process.env.NEXT_PUBLIC_CAPTCHA_SITEKEY],
+    [OptionalService.DistributedTracing]: [process.env.NEXT_PUBLIC_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT],
 }
 
 export const SMOOTHING_MIN_BASAL_ELEMENTS: number = 5
