@@ -55,7 +55,9 @@ export function InfoText() {
                             clicking on the <code>Submit new job &gt;&gt;</code> button.<br />
                             The job will then be executed. Once it has finished, its results can be
                             viewed using the <code>Get results</code> button. <br />
-                            You'll receive an email containing the results if you provided your email address.
+                            You'll receive an email containing the results if you provided your email address.<br /><br />
+                            If you run this site locally, an additional requirement is that you configured the mail service
+                            in the Nighttune backend.
                         </Typography>
                     }
                 />
