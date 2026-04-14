@@ -5,10 +5,12 @@ import { Helmet } from 'react-helmet'
 import { Alert, AlertTitle, Divider, Fade, FormLabel, Grid, InputLabel, Link, List, ListItem, ListItemText, MenuItem, Select, TextField, Typography } from '@mui/material'
 
 import { STORE_EVENT_TYPES } from '../utils/localStore'
+import { AlertInfo, NightscoutApiVersion, OptionalService } from '../utils/constants'
+import { isServiceEnabled } from '../utils/optionalServices'
+
 import FormGrid from './FormGrid'
 
 import type { ChangeEvent, FocusEvent } from 'react'
-import { AlertInfo, NightscoutApiVersion } from '../utils/constants'
 import type { Snapshot, Store } from '../utils/localStore'
 
 import * as logger from '../utils/logger'
@@ -76,6 +78,8 @@ export function InfoText() {
                         }
                     />
                 </ListItem>
+                {isServiceEnabled(OptionalService.Captcha) && 
+                <>
                 <Divider variant="inset" component="li" />
                 <ListItem alignItems='flex-start'>
                     <ListItemText 
@@ -85,12 +89,13 @@ export function InfoText() {
                         }}
                         secondary={
                             <Typography variant='body2' sx={{ color: 'text.secondary' }} >
-                                To prevent bots from messing around with this site, you might have to complete a challenge: click
-                                the checkbox, indicating that you are human. That's it.
+                                To prevent bots from messing around with this site, an automatic captcha test (proof of work)
+                                is run, which allows you to continue to use this site.
                             </Typography>
                         }
                     />
                 </ListItem>
+                </>}
             </List>
         </>
     );
@@ -98,55 +103,58 @@ export function InfoText() {
 
 export function NightscoutInstance({ store, preventNext }: { store: Store, preventNext: (value: boolean) => void}) {
     const snapshot: Snapshot = React.useSyncExternalStore(store.subscribe, store.getSnapshot)
-    const [url, setUrl] = React.useState(snapshot.url)
+    const captchaServiceEnabled = isServiceEnabled(OptionalService.Captcha)
     const [captchaValid, setCaptchaValid] = React.useState(false)
+    const [url, setUrl] = React.useState(snapshot.url)
     const [alert, setAlert] = React.useState(DEFAULT_ALERT_SETTINGS)
     const [urlError, setUrlError] = React.useState(false)
     const [token, setToken] = React.useState(snapshot.access_token)
     const [apiVersion, setApiVersion] = React.useState(snapshot.nightscout_api_version || NightscoutApiVersion.v1)
 
-    // Set up cap.js widget and event listeners.
-    const cap = new Cap({
-        apiEndpoint: `${process.env.NEXT_PUBLIC_CAPTCHA_BASE_URL}/${encodeURIComponent(process.env.NEXT_PUBLIC_CAPTCHA_SITEKEY!)}/`
-    })
-    cap.addEventListener('error', (error: CapErrorEvent) => {
-        logger.error(`Captcha verification failed:\n${error.detail.message}`)
-        setAlert(new AlertInfo(true, 'Captcha verification', 'Captcha verification failed. Please reload the page to try again.'))
-    })
-    cap.addEventListener('solve', async (event: CapSolveEvent) => {
-        const response = await fetch(new URL('captcha', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
-            method: 'POST',
-            body: JSON.stringify({ token: event.detail.token }),
-            credentials: 'include'
+    if (captchaServiceEnabled) {
+        // Set up cap.js widget and event listeners.
+        const cap = new Cap({
+            apiEndpoint: `${process.env.NEXT_PUBLIC_CAPTCHA_BASE_URL}/${encodeURIComponent(process.env.NEXT_PUBLIC_CAPTCHA_SITEKEY!)}/`
         })
-
-        if (!response.ok) {
-            logger.error('Captcha site verification failed', {
-                'http.status': response.status
+        cap.addEventListener('error', (error: CapErrorEvent) => {
+            logger.error(`Captcha verification failed:\n${error.detail.message}`)
+            setAlert(new AlertInfo(true, 'Captcha verification', 'Captcha verification failed. Please reload the page to try again.'))
+        })
+        cap.addEventListener('solve', async (event: CapSolveEvent) => {
+            const response = await fetch(new URL('captcha', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
+                method: 'POST',
+                body: JSON.stringify({ token: event.detail.token }),
+                credentials: 'include'
             })
-            
-            setAlert(new AlertInfo(true, 'Captcha verification', 'Captcha site verification failed. Please reload the page to try again.'))
-        } else {
-            setCaptchaValid(true)
-            setAlert(DEFAULT_ALERT_SETTINGS)
-        }
-    })
-    window.CAP_CUSTOM_WASM_URL = `${process.env.NEXT_PUBLIC_CAPTCHA_BASE_URL}/assets/cap_wasm.js`
 
-    // Try to solve the captcha if it's not valid (yet)
-    React.useEffect(() => {
-        async function solve() {
-            return await cap.solve()
-        }
+            if (!response.ok) {
+                logger.error('Captcha site verification failed', {
+                    'http.status': response.status
+                })
+                
+                setAlert(new AlertInfo(true, 'Captcha verification', 'Captcha site verification failed. Please reload the page to try again.'))
+            } else {
+                setCaptchaValid(true)
+                setAlert(DEFAULT_ALERT_SETTINGS)
+            }
+        })
+        window.CAP_CUSTOM_WASM_URL = `${process.env.NEXT_PUBLIC_CAPTCHA_BASE_URL}/assets/cap_wasm.js`
 
-        if (!captchaValid) {
-            solve()
-        }
-    }, [captchaValid])
+        // Try to solve the captcha if it's not valid (yet)
+        React.useEffect(() => {
+            async function solve() {
+                return await cap.solve()
+            }
+
+            if (!captchaValid) {
+                solve()
+            }
+        }, [captchaValid])
+    }
 
     // With initial values, disable preventNext by validating url.
     let prevent = true
-    if (url && captchaValid) {
+    if (url && ((captchaServiceEnabled && captchaValid) || true)) {
         try {
             new URL(url)
             prevent = false

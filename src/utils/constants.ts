@@ -5,6 +5,20 @@ export enum NightscoutApiVersion {
     v3 = 3
 }
 
+export const enum OptionalService {
+    /**
+      * Service to check if the frontend user is a real person.
+      */
+     Captcha = 'captcha',
+}
+
+/**
+ * Required environment variables used to configure the respective services.
+ */
+export const ServiceEnvVars = {
+    [OptionalService.Captcha]: [process.env.NEXT_PUBLIC_CAPTCHA_BASE_URL, process.env.NEXT_PUBLIC_CAPTCHA_SITEKEY],
+}
+
 export const SMOOTHING_MIN_BASAL_ELEMENTS: number = 5
 
 export interface ErrorInfo {

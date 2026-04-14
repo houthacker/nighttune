@@ -22,6 +22,8 @@ import * as React from 'react'
 import AutotuneJobStatus from './components/AutotuneJobStatus'
 import { NightscoutInstance } from './components/NightscoutInstance'
 import ProfileDetails from './components/ProfileDetails'
+import ProfileConversion from './components/ProfileConversion'
+import GDPROverview from './components/GDPROverview'
 
 import Info from './components/Info'
 import InfoMobile from './components/InfoMobile'
@@ -34,11 +36,11 @@ import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded'
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded'
 import HighlightOffOutlinedIcon from '@mui/icons-material/HighlightOffOutlined'
 
-import ProfileConversion from './components/ProfileConversion'
 import store from './utils/localStore'
+import { OptionalService } from './utils/constants'
+import { isServiceEnabled } from './utils/optionalServices'
 
 import type { Dispatch, SetStateAction } from 'react'
-import GDPROverview from './components/GDPROverview'
 import type { Store } from './utils/localStore'
 
 // The steps to successfully queue an autotune job
@@ -377,10 +379,19 @@ export default function App(props: any) {
           </Box>
           <Box sx={{ position: 'fixed', bottom: '5px', left: { xs: '5px', md: '35%'} }}>
             <Grid container>
-                <Typography variant='body2' color='text.secondary'>
-                  Nighttune version: <VersionLink /> | <Link target="_blank" rel="noopener" href="https://github.com/houthacker/nighttune/blob/main/PRIVACY.md">Privacy policy</Link>
-                  &nbsp;| Captcha by <Link target="_blank" rel="noopener" href="https://capjs.js.org/">capjs</Link>
-                </Typography>
+                {
+                  isServiceEnabled(OptionalService.Captcha)
+                  ? 
+                  <Typography variant='body2' color='text.secondary'>
+                    Nighttune version: <VersionLink /> | <Link target="_blank" rel="noopener" href="https://github.com/houthacker/nighttune/blob/main/PRIVACY.md">Privacy policy</Link>
+                    &nbsp;| Captcha by <Link target="_blank" rel="noopener" href="https://capjs.js.org/">capjs</Link>
+                  </Typography>
+                  : 
+                  <Typography variant='body2' color='text.secondary'>
+                    Nighttune version: <VersionLink /> | <Link target="_blank" rel="noopener" href="https://github.com/houthacker/nighttune/blob/main/PRIVACY.md">Privacy policy</Link>
+                  </Typography>
+                }
+                
             </Grid>
           </Box>
         </Grid>
