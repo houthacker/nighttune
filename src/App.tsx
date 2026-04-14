@@ -16,30 +16,30 @@ import {
   StepLabel,
   Stepper,
   Typography
-} from '@mui/material';
-import * as React from 'react';
+} from '@mui/material'
+import * as React from 'react'
 
-import AutotuneJobStatus from './components/AutotuneJobStatus';
-import { NightscoutInstance } from './components/NightscoutInstance';
-import ProfileDetails from './components/ProfileDetails';
+import AutotuneJobStatus from './components/AutotuneJobStatus'
+import { NightscoutInstance } from './components/NightscoutInstance'
+import ProfileDetails from './components/ProfileDetails'
 
-import Info from "./components/Info";
-import InfoMobile from "./components/InfoMobile";
-import NightscoutIcon from "./components/NightscoutIcon";
-import AppTheme from './components/shared-theme/AppTheme';
-import ColorModeIconDropdown from './components/shared-theme/ColorModeIconDropdown';
-import VersionLink from './components/VersionLink';
+import Info from './components/Info'
+import InfoMobile from './components/InfoMobile'
+import NightscoutIcon from './components/NightscoutIcon'
+import AppTheme from './components/shared-theme/AppTheme'
+import ColorModeIconDropdown from './components/shared-theme/ColorModeIconDropdown'
+import VersionLink from './components/VersionLink'
 
-import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
-import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
-import HighlightOffOutlinedIcon from '@mui/icons-material/HighlightOffOutlined';
+import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded'
+import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded'
+import HighlightOffOutlinedIcon from '@mui/icons-material/HighlightOffOutlined'
 
-import ProfileConversion from './components/ProfileConversion';
-import store from './utils/localStore';
+import ProfileConversion from './components/ProfileConversion'
+import store from './utils/localStore'
 
-import type { Dispatch, SetStateAction } from 'react';
-import GDPROverview from './components/GDPROverview';
-import type { Store } from './utils/localStore';
+import type { Dispatch, SetStateAction } from 'react'
+import GDPROverview from './components/GDPROverview'
+import type { Store } from './utils/localStore'
 
 // The steps to successfully queue an autotune job
 const steps = [
@@ -48,7 +48,8 @@ const steps = [
   { name: 'profile_conversion', display_name: 'Profile conversion' },
   { name: 'autotune_job_status', display_name: 'Autotune job status' },
   { name: 'gdpr_overview', display_name: 'My data'}
-];
+]
+
 
 /**
  * Gets the UI element for the given step name.
