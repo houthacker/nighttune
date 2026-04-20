@@ -21,7 +21,7 @@
     "@mui/icons-material": "^9.0.0",
     "@mui/material": "^9.0.0",
     "@mui/x-charts": "^9.0.1",
-    "@opentelemetry/api-logs": "^0.214.0",
+    "@opentelemetry/api-logs": "^0.215.0",
     "@opentelemetry/exporter-logs-otlp-http": "^0.214.0",
     "@opentelemetry/instrumentation-fetch": "^0.214.0",
     "@opentelemetry/instrumentation-http": "^0.214.0",
