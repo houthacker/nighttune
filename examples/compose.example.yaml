@@ -1,0 +1,29 @@
+name: nighttune-frontend
+
+services:
+
+  nighttune-frontend:
+    # Pulling from the github image registry is also possible, in which
+    # case the image is ghcr.io/houthacker/nighttune:latest
+    image: nighttune-frontend:latest
+
+    # If you built the image yourself, use this policy to prevent
+    # pulling from a remote registry. Otherwise, remove this line.
+    pull_policy: never
+    container_name: nighttune-frontend
+
+    restart: always
+
+    ports:
+      # By default, the port is only exposed to localhost.
+      # This is to prevent a direct connection with the internet when
+      # running on a host that is not behind a router. This is also
+      # practical if you want to run it behind a proxy with e.g. nginx.
+      #
+      # However, if you don't want this, just remove the ip address 
+      # and first colon.
+      - "127.0.0.1:3000:3000"
+    
+    volumes:
+      # Update to reflect the actual source directory to mount to.
+      - /home/user/nighttune-docker/config/.env.frontend:/config/.env

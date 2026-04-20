@@ -29,3 +29,4 @@ build
 next-env.d.ts
 .env*
 !examples/.env.example
+!.docker/.env.template
