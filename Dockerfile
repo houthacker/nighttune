@@ -1,7 +1,5 @@
-FROM node:24-trixie-slim
+FROM node:24-trixie-slim AS builder
 LABEL org.opencontainers.image.authors="github.com/houthacker"
-
-EXPOSE 3000
 
 WORKDIR /app
 COPY . .
@@ -9,12 +7,22 @@ COPY . .
 # Prepare the template .env file
 RUN mv .docker/.env.template .env
 
-# Change default shell to bash
-RUN chsh -s /usr/bin/bash
-
 # Install dependencies and build
 RUN npm ci
 RUN npm run build
+
+FROM node:24-trixie-slim AS runtime
+LABEL org.opencontainers.image.authors="github.com/houthacker"
+
+EXPOSE 3000
+
+# Copy distribution build 
+WORKDIR /app
+COPY --from=builder --exclude=.github --exclude=.vscode --exclude=app \
+    --exclude=examples --exclude=tests /app /app
+
+# Change default shell to bash
+RUN chsh -s /usr/bin/bash
 
 # Override env file using --build-arg ENV_FILE=...
 ARG ENV_FILE='/config/.env'
