@@ -5,7 +5,7 @@ services:
   nighttune-frontend:
     # Pulling from the github image registry is also possible, in which
     # case the image is ghcr.io/houthacker/nighttune:latest
-    image: nighttune-frontend:latest
+    image: nighttune:latest
 
     # If you built the image yourself, use this policy to prevent
     # pulling from a remote registry. Otherwise, remove this line.
