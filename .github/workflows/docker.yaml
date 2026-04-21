@@ -69,7 +69,7 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
           port: ${{ secrets.DEPLOY_SSH_PORT }}
           source: ".env.production"
-          target: ${{ vars.NT_CONFIG_DIR }}/${{ vars.NT_ENV_FILE_NAME }}
+          target: /tmp
 
       # Build the Docker image and push it to the configured registry.
       # When booted, the container pulls in the .env.production variables.
@@ -105,6 +105,8 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
           port: ${{ secrets.DEPLOY_SSH_PORT }}
           script: |
+            echo "*** Moving environment file in place"
+            mv /tmp/.env.production ${{ vars.NT_CONFIG_DIR }}/${{ vars.NT_ENV_FILE_NAME }}
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
             echo "*** Pulling latest ${{ github.actor }}/${{ env.IMAGE_NAME }} from ${{ env.REGISTRY }} ***"
             docker compose -f ${{ secrets.DEPLOY_SSH_DOCKER_COMPOSE_FILE }} pull ${{ vars.DOCKER_COMPOSE_SERVICE_NAME }}
