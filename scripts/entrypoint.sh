@@ -12,6 +12,22 @@ if [ ! -f "${ENV_FILE}" ]; then
     exit 1
 fi
 
+# Prepare the given argument for processing by sed.
+sedify () {
+    value="$1"
+    
+    # Remove any leading or trailing single- and double quotes 
+    value="${value%\'}"
+    value="${value#\'}"
+    value="${value%\"}"
+    value="${value#\"}"
+
+    # Escape forward slashes
+    value="${value//\//\\/}"
+
+    echo $value
+}
+
 # Largely inspired by https://www.abgeo.dev/blog/dynamic-environment-variables-dockerized-nextjs/
 replace_template_env_vars () {
     cat ${ENV_FILE} | while read -r LINE ; do
@@ -22,14 +38,8 @@ replace_template_env_vars () {
             # Get value (everything after the first '=')
             VALUE=$(cut -d '=' -f2- <<< "$LINE")
 
-            # Remove possible single- and double quotes
-            VALUE="${VALUE%\'}"
-            VALUE="${VALUE#\'}"
-            VALUE="${VALUE%\"}"
-            VALUE="${VALUE#\"}"
-
-            # Escape forward slashes
-            VALUE="${VALUE//\//\\/}"
+            # Prepare the value for processing by sed
+            VALUE=$(sedify "${VALUE}")
 
             # Replace everything in the nextjs distribution directory with the real env values
             echo "find ${NEXT_DIST_DIR} -type f -exec sed -i \"s/_${KEY}_/${VALUE}/g\" {} +"
