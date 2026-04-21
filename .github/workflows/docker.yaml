@@ -25,6 +25,9 @@ jobs:
       id-token: write
       #
     steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+        
       - name: Checkout repository
         uses: actions/checkout@v5
 
