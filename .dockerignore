@@ -5,3 +5,6 @@
 
 dist
 node_modules
+
+.env.*
+!.docker/.env.template

@@ -4,10 +4,10 @@
 
 Only the latest version is officially supported since only the latest version runs on nighttune.app
 
-| Version | Supported          |
-| ------- | ------------------ |
-| latest   | :white_check_mark: |
-| < latest   | :x:                |
+| Version   | Supported          |
+| --------- | ------------------ |
+| latest    | :white_check_mark: |
+| < latest  | :x:                |
 
 ## Reporting a Vulnerability
 
