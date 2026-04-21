@@ -1,7 +1,5 @@
-#
 name: Build and push Nighttune Docker image
 
-# Configures this workflow to run every time a change is pushed to the branch called `release`.
 on:
 
   # Trigger from creating new tags
@@ -14,12 +12,12 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
-# There is a single job in this workflow. It's configured to run on the latest available version of Ubuntu.
 jobs:
   build-and-push-image:
     environment: 'production'
     runs-on: ubuntu-latest
-    # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
+
+    # Set the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
     permissions:
       contents: read
       packages: write
@@ -29,21 +27,21 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
-      # Uses the `docker/login-action` action to log in to the Container registry registry using the account and password that will publish the packages. Once published, the packages are scoped to the account defined here.
+
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      # This step uses [docker/metadata-action](https://github.com/docker/metadata-action#about) to extract tags and labels that will be applied to the specified image. The `id` "meta" allows the output of this step to be referenced in a subsequent step. The `images` value provides the base name for the tags and labels.
+
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
       
-      - name: Create .env file
+      - name: Generate .env file
         run: |
           echo "NEXT_PUBLIC_BACKEND_BASE_URL=${{ secrets.BACKEND_BASE_URL }}" > .env.production
           echo "NEXT_PUBLIC_CAPTCHA_SITEKEY=${{ secrets.CAPTCHA_SITEKEY }}" >> .env.production
@@ -53,10 +51,21 @@ jobs:
           echo "NEXT_PUBLIC_DEPLOY_ENV=production" >> .env.production
           echo "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${{ secrets.SERVER_ACTIONS_ENCRYPTION_KEY }}" >> .env.production
           echo "NEXT_PUBLIC_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=${{ vars.DLOG_URL }}" >> .env.production 
+      
+      - name: Copy generated .env file to production host
+        id: copy-env-file
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_SSH_HOST }}
+          username: ${{ secrets.DEPLOY_SSH_USER }}
+          key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.DEPLOY_SSH_PORT }}
+          source: ".env.production"
+          target: ${{ vars.NT_CONFIG_DIR }}/${{ vars.NT_ENV_FILE_NAME }}
 
-      # This step uses the `docker/build-push-action` action to build the image, based on your repository's `Dockerfile`. If the build succeeds, it pushes the image to GitHub Packages.
-      # It uses the `context` parameter to define the build's context as the set of files located in the specified path. For more information, see [Usage](https://github.com/docker/build-push-action#usage) in the README of the `docker/build-push-action` repository.
-      # It uses the `tags` and `labels` parameters to tag and label the image with the output from the "meta" step.
+      # Build the Docker image and push it to the configured registry.
+      # When booted, the container pulls in the .env.production variables.
+      # See scripts/entrypoint.sh for that
       - name: Build and push Docker image
         id: push
         uses: docker/build-push-action@v6
