@@ -321,52 +321,65 @@ export default function ProfileDetails({ store, preventNext }:
             nightscout_access_token: string | undefined,
             nightscout_api_version: NightscoutApiVersion | undefined
         }) {
-            const response = await fetch(new URL('verify', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
-                method: 'POST',
-                credentials: 'include',
-                body: JSON.stringify(request, (k, v) => {
-                    return v === undefined && k === "nightscout_access_token" ? undefined : v
+            try {
+                const response = await fetch(new URL('verify', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: JSON.stringify(request, (k, v) => {
+                        return v === undefined && k === "nightscout_access_token" ? undefined : v
+                    })
                 })
-            })
 
-            if (!response.ok) {
-                logger.warn('Nightscout URL failed', {
-                    'url': request.nightscout_url,
-                    'http.status': response.status
-                })
-            }
-
-            if (!response.ok && !alert.show) {
-                let additionalDescription = ''
-                switch (response.status) {
-                    case 400:
-                        additionalDescription = ': Invalid verification request.'
-                        break
-                    case 407:
-                        additionalDescription = ': Verification failed.'
+                if (!response.ok) {
+                    logger.warn('Nightscout URL failed', {
+                        'url': request.nightscout_url,
+                        'http.status': response.status
+                    })
                 }
+
+                if (!response.ok && !alert.show) {
+                    let additionalDescription = ''
+                    switch (response.status) {
+                        case 400:
+                            additionalDescription = ': Invalid verification request.'
+                            break
+                        case 407:
+                            additionalDescription = ': Verification failed.'
+                    }
+
+                    setAlert({
+                        show: true,
+                        title: 'Nightscout verification',
+                        description: `Cannot retrieve profile details from your Nightscout instance using the provided details${additionalDescription}`
+                    })
+                } else {
+                    setAlert({
+                        show: false,
+                        title: undefined,
+                        description: undefined,
+                    })
+
+                    if (isLoaded === false) {
+                        fetchNightscoutProfiles().then(
+                            setStates,
+                            (alert: AlertInfo) => {
+                                setStates(DEFAULT_PROFILES)
+                                setAlert(alert)
+                            }
+                        )
+                    }
+                }
+            } catch (error) {
+                logger.error('Nightscout verification request failed', {
+                    'url': request.nightscout_url,
+                    'error.message': error instanceof Error ? error.message : String(error)
+                })
 
                 setAlert({
                     show: true,
                     title: 'Nightscout verification',
-                    description: `Cannot retrieve profile details from your Nightscout instance using the provided details${additionalDescription}`
+                    description: 'Cannot verify your Nightscout details right now. Please check your connection and try again.'
                 })
-            } else {
-                setAlert({
-                    show: false,
-                    title: undefined,
-                    description: undefined,
-                })
-
-                if (isLoaded === false) {
-                    fetchNightscoutProfiles().then(
-                        setStates,
-                        (alert: AlertInfo) => {
-                            setStates(DEFAULT_PROFILES)
-                            setAlert(alert)
-                        }
-                    )
-                }
             }
         }
 
