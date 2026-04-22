@@ -1,6 +1,5 @@
 import Cap, { CapErrorEvent, CapSolveEvent } from '@cap.js/widget'
 import React from 'react'
-import { Helmet } from 'react-helmet'
 
 import { Alert, AlertTitle, Divider, Fade, FormLabel, Grid, InputLabel, Link, List, ListItem, ListItemText, MenuItem, Select, TextField, Typography } from '@mui/material'
 
@@ -20,10 +19,6 @@ const DEFAULT_ALERT_SETTINGS = new AlertInfo(false, undefined, undefined)
 export function InfoText() {
     return ( 
         <>
-            <Helmet>
-                <meta name="description" content="Nighttune provides a simple way to run OpenAPS Autotune against Nightscout profiles." />
-                <meta property="og:description" content="Nighttune provides a simple way to run OpenAPS Autotune against Nightscout profiles." />
-            </Helmet>
             <List sx={{ bgcolor: 'background.paper' }}>
                 <ListItem alignItems="flex-start">
                     <ListItemText
