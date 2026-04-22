@@ -113,7 +113,7 @@ export function InfoText() {
                             When viewing the results of a previous job, the timezone of the Nightscout
                             profile at that time is used.<br /><br />
                             If you're at home, there probably will be no difference between these two, but 
-                            if you're travelling to a different time zone it's important to know these 
+                            if you're traveling to a different time zone it's important to know these 
                             time zones can be different.
                         </Typography>
                     }

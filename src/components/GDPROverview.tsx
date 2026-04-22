@@ -36,7 +36,7 @@ export function InfoText() {
                     }}
                     secondary={
                         <Typography variant='body2' sx={{ color: 'text.secondary'}} >
-                            On this page you can excercise your GDPR rights to retrieve your data as a JSON file.
+                            On this page you can exercise your GDPR rights to retrieve your data as a JSON file.
                             You can also delete all your data that Nighttune has retained. 
                             To do either, click the corresponding button.<br /><br />
 

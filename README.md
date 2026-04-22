@@ -15,7 +15,7 @@ Nighttune runs at <https://nighttune.app>. All user documentation is available a
 
 ## Monitoring &amp; logging
 
-Monitoring and logging is done using a self-hosted version of <https://openobserve.ai>. What is logged is decribed in the [Privacy Policy](./PRIVACY.md#data-not-relateable-to-you)
+Monitoring and logging is done using a self-hosted version of <https://openobserve.ai>. What is logged is described in the [Privacy Policy](./PRIVACY.md#data-not-relatable-to-you)
 
 ## Help
 

@@ -91,13 +91,13 @@ export function InfoText() {
             <Divider variant="inset" component="li" />
             <ListItem alignItems="flex-start">
                 <ListItemText
-                    primary="Basal smoothibng"
+                    primary="Basal smoothing"
                     slotProps={{
                         primary: { color: 'text.primary' }
                     }}
                     secondary={
                         <Typography variant='body2' sx={{ color: 'text.secondary'}} >
-                            Basal suggestions can sometimes be a little spikey. If you want to
+                            Basal suggestions can sometimes be a little spiky. If you want to
                             remove these spikes and use more physiological 'fitting' values,
                             select one of the basal smoothing options. The more smoothing you select,
                             the more intense/aggressive the smoothing algorithm will work.<br /><br />

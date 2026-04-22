@@ -59,12 +59,12 @@ export function InfoText() {
                     secondary={
                         <Typography variant='body2' sx={{ color: 'text.secondary' }} >
                             When carb absorption can't be dynamically worked out based on your blood's reactions,
-                            the minimum 5-minute carb impact will be used as a failasfe.<br />
+                            the minimum 5-minute carb impact will be used as a failsafe.<br />
                             It's used only when there are gaps in CGM readings or when physical activity 'uses up'
                             all the blood glucose rise that would otherwise cause a <dfn><abbr>COB</abbr> (Carbs On Board)</dfn> decay.
                             <br /><br />
 
-                            <em>Note:</em> If you use AndroisAPS in simple mode, this setting is hidden there.
+                            <em>Note:</em> If you use AndroidAPS in simple mode, this setting is hidden there.
                         </Typography>
                     }
                 />
@@ -400,7 +400,7 @@ export default function ProfileDetails({ store, preventNext }:
         setSelectedProfile('__default__')
         setProfileNames([])
 
-        // And, to prevent inconsistend stored data: remove the converted profile from storage.
+        // And, to prevent inconsistently stored data: remove the converted profile from storage.
         let newSettings = {...conversionSettings, oaps_profile_data: undefined}
         setConversionSettings({...newSettings})
         store.setConversionSettings({...newSettings})
@@ -551,7 +551,7 @@ export default function ProfileDetails({ store, preventNext }:
                                     <Grid size={9}>
                                         <Typography variant='caption' color='textDisabled'>
                                             Depending on your pump type, you might have to adjust your profile
-                                            if you're travelling to a different time zone to prevent double
+                                            if you're traveling to a different time zone to prevent double
                                             records. See the AndroidAPS documentation for details about this.
                                         </Typography>
                                     </Grid>

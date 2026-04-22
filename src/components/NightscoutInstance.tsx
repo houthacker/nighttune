@@ -201,7 +201,7 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
             store.setNightscoutApiVersion(event.target.value as NightscoutApiVersion)
     }
 
-    const store_unsubcribe = store.subscribe((event_type) => {
+    const store_unsubscribe = store.subscribe((event_type) => {
         if (event_type === STORE_EVENT_TYPES.CLEAR) {
             setUrl('')
             setToken('')
@@ -211,7 +211,7 @@ export function NightscoutInstance({ store, preventNext }: { store: Store, preve
     // Unsubscribe from store when unmounting
     React.useEffect(() => {
         return () => {
-            store_unsubcribe()
+            store_unsubscribe()
         }
     })
 

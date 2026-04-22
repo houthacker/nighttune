@@ -143,7 +143,7 @@ export interface NightscoutProfileDef {
     timezone: string,
 
     /**
-     * The Insuline / Carb Ratios. AAPS supports a minimum resolution of 1h.
+     * The Insulin / Carb Ratios. AAPS supports a minimum resolution of 1h.
      */
     carbratio: TimedValue[],
 
