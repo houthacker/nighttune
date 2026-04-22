@@ -31,10 +31,10 @@ that is not retained is used only when executing the Application and discarded i
 | Autotune recommendations  |&#x2713;   | Running autotune, showing reports     |
 |                           |           |                                       |
 
-#### Data not relateable to you
+#### Data not relatable to you
 
 The table below contains data elements collected for performance monitoring and
-debugging and is not relateable to you. **Therefore, this data cannot be retrieved nor deleted using a GDPR request.**
+debugging and is not relatable to you. **Therefore, this data cannot be retrieved nor deleted using a GDPR request.**
 The retention periods shown in this table may change without notice.
 
 | Data elements                                 | Retention period  | Use                                |
@@ -288,12 +288,12 @@ No.
 
 ## What are my rights?
 
-Under the GDPR there are [a number of rights](https://www.edpb.europa.eu/about-edpb/faq-frequently-asked-questions/what-are-my-rights-under-gdpr_en) you can excercise. For Nighttune, the "Right of data portability" and the "Right to reasure" are fully automated so that you can excercise them at will.
+Under the GDPR there are [a number of rights](https://www.edpb.europa.eu/about-edpb/faq-frequently-asked-questions/what-are-my-rights-under-gdpr_en) you can exercise. For Nighttune, the "Right of data portability" and the "Right to reassure" are fully automated so that you can exercise them at will.
 To do so, go to [Nighttune](https://nighttune.app) and click on the `My Data` step for further instructions.
 
-Additionally, you can excercise the "Right of Access" by visiting the Application and inspect your data there.
+Additionally, you can exercise the "Right of Access" by visiting the Application and inspect your data there.
 
-If you want to excercise another right under the GDPR, please contact Nighttune at [help@nighttune.app](mailto:help@nighttune.app) and explain your situation. We will then help you within a reasonable amount of time.
+If you want to exercise another right under the GDPR, please contact Nighttune at [help@nighttune.app](mailto:help@nighttune.app) and explain your situation. We will then help you within a reasonable amount of time.
 
 ## What is the data retention policy and how can you manage your information?
 

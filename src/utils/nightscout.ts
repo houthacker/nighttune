@@ -72,7 +72,7 @@ export class AutotuneResult {
     }
 
     /**
-     * Finds the Insuline Sensivitiy Factor recommendation.
+     * Finds the Insulin Sensitivity Factor recommendation.
      * @returns The ISF recommendation, or `{}` if no such recommendation exists.
      */
     find_isf(): Recommendation {
