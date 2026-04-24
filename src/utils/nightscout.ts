@@ -107,11 +107,12 @@ export function roundToNext(value: number, increment: number): number {
 export async function fetchNightscoutProfiles(): Promise<NightscoutProfile> {
     try {
         const response = await fetch(new URL('profile/all', process.env.NEXT_PUBLIC_BACKEND_BASE_URL!), {
+            cache: 'no-cache',
             method: 'GET',
             credentials: 'include',
             headers: {
-                // Force the backend to always return the latest profiles.
                 'Cache-Control': 'no-cache, no-store',
+                'Expires': '0'
             }
         })
 
