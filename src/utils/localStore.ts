@@ -193,7 +193,7 @@ export class Store {
     /**
      * Subscribes the given listener to changes in the store.
      * @param {StoreListener} listener 
-     * @returns {UnsubscribeFn} A callback to unsibscribe `listener`.
+     * @returns {UnsubscribeFn} A callback to unsubscribe `listener`.
      */
     subscribe(listener: StoreListener): UnsubscribeFn {
         listeners.add(listener);
