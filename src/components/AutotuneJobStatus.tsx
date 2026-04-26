@@ -341,7 +341,6 @@ export default function AutotuneJobStatus({ store }: { store: Store }): ReactEle
                 open={modalOpen}
                 onClose={() => { setModalOpen(false) }}
                 sx={{ overflow: 'scroll' }}
-                draggable={true}
             >
                 <AutotuneJobResults 
                     result={jobResults}
