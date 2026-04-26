@@ -2,7 +2,7 @@ import { tz } from '@date-fns/tz'
 import { format, parseISO } from 'date-fns'
 import { ReactElement } from 'react'
 
-import { Box, List, ListItem, ListItemText, Paper, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TableRow, Typography } from '@mui/material'
+import { Box, List, ListItem, ListItemText, Paper, styled, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TableRow, Typography } from '@mui/material'
 import { AutotuneResult, BasalSmoothing, PostProcessType, roundToNext } from '../utils/nightscout'
 
 const style = {
@@ -21,6 +21,17 @@ const style = {
 function haveBasalSmoothing(props: AutotuneJobResultsProps): boolean {
     return [BasalSmoothing.LOW, BasalSmoothing.MEDIUM, BasalSmoothing.HIGH].includes(props.result?.options.basalSmoothing || BasalSmoothing.NONE)
 }
+
+const StyledTableRow = styled(TableRow)(({ theme }) => ({
+    '&:nth-of-type(odd)': {
+        backgroundColor: theme.palette.action.hover,
+    },
+
+    // Hide last border
+    '&:last-child td, &:last-child th': {
+        border: 0
+    }
+}))
 
 export type AutotuneJobResultsProps = {
     result: AutotuneResult | undefined
@@ -110,7 +121,7 @@ export default function AutotuneJobResults(props: AutotuneJobResultsProps): Reac
                 </TableHead>
                 <TableBody>
                     {props.result.find_basal().map(row => (
-                        <TableRow key={`basal-${format(parseISO(row.when), 'HHmm')}`}>
+                        <StyledTableRow key={`basal-${format(parseISO(row.when), 'HHmm')}`}>
                             <TableCell>{format(parseISO(row.when), 'HH:mm', 
                                 {
                                     in: tz(props.result!.options.timeZone)
@@ -121,7 +132,7 @@ export default function AutotuneJobResults(props: AutotuneJobResultsProps): Reac
                             <TableCell>{row.roundedRecommendation ?? roundToNext(row.recommendedValue, props.result!.options.basalIncrement).toFixed(2)}</TableCell>
                             {haveBasalSmoothing(props) && <TableCell>{roundToNext(row.postProcessed.get(PostProcessType.SMOOTH) || 0, props.result!.options.basalIncrement).toFixed(2)}</TableCell>}
                             <TableCell>{row.daysMissing}</TableCell>
-                        </TableRow>
+                        </StyledTableRow>
                     ))}
                 </TableBody>
                 <TableFooter>
