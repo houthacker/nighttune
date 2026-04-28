@@ -13,7 +13,7 @@
     "vet": "npx vet --exceptions .github/vet/exceptions.yml scan -D . --filter-suite .github/vet/policy.yml"
   },
   "dependencies": {
-    "@cap.js/widget": "^0.1.43",
+    "@cap.js/widget": "^0.1.46",
     "@date-fns/tz": "^1.4.1",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
