@@ -20,7 +20,7 @@
     "@fontsource/roboto": "^5.2.10",
     "@mui/icons-material": "^9.0.0",
     "@mui/material": "^9.0.0",
-    "@mui/x-charts": "^9.0.2",
+    "@mui/x-charts": "^9.0.3",
     "@opentelemetry/api-logs": "^0.215.0",
     "@opentelemetry/exporter-logs-otlp-http": "^0.215.0",
     "@opentelemetry/instrumentation-fetch": "^0.215.0",
