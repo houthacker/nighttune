@@ -18,7 +18,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@fontsource/roboto": "^5.2.10",
-    "@mui/icons-material": "^9.0.0",
+    "@mui/icons-material": "^9.1.1",
     "@mui/material": "^9.1.1",
     "@mui/x-charts": "^9.1.0",
     "@opentelemetry/api-logs": "^0.215.0",
