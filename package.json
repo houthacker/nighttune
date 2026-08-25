@@ -34,7 +34,7 @@
     "iron-session": "^8.0.4",
     "next": "^16.2.9",
     "react": "^19.2.5",
-    "react-dom": "^19.2.7",
+    "react-dom": "^19.2.8",
     "react-helmet": "^6.1.0",
     "react-router-dom": "^7.17.0",
     "semver": "^7.7.4"
@@ -44,7 +44,7 @@
     "@safedep/vet": "^1.16.2",
     "@types/node": "^26.0.0",
     "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
+    "@types/react-dom": "^19.2.4",
     "@types/react-helmet": "^6.1.11",
     "@types/semver": "^7.7.1",
     "@vitejs/plugin-react": "^6.1.0",
