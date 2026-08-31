@@ -41,7 +41,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@safedep/vet": "^1.18.2",
+    "@safedep/vet": "^1.19.0",
     "@types/node": "^26.0.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
