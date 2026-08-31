@@ -26,7 +26,7 @@
     "@opentelemetry/instrumentation-fetch": "^0.219.0",
     "@opentelemetry/instrumentation-http": "^0.219.0",
     "@opentelemetry/otlp-exporter-base": "^0.219.0",
-    "@opentelemetry/resources": "^2.8.0",
+    "@opentelemetry/resources": "^2.10.0",
     "@opentelemetry/sdk-logs": "^0.219.0",
     "@opentelemetry/semantic-conventions": "^1.41.1",
     "csrf": "^3.1.0",
